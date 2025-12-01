@@ -156,24 +156,18 @@ function createFtpServer(config: FtpConfig): FtpServer {
       resolve: (response: FtpLoginResponse) => void,
       reject: (error: Error) => void,
     ) => {
-      console.log(`FTP login attempt: ${username}`);
-      console.log(`Using root path: ${normalizedRootPath}`);
-
       if (config.anonymous && username === 'anonymous') {
-        console.log('Anonymous login accepted');
         resolve({ root: normalizedRootPath });
       } else if (
         !config.anonymous &&
         username === config.username &&
         password === config.password
       ) {
-        console.log('Authenticated login accepted');
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.webContents.send('ftp-connected', { success: true });
         }
         resolve({ root: normalizedRootPath });
       } else {
-        console.log('Login rejected');
         reject(new Error('Invalid credentials'));
       }
     },
@@ -860,7 +854,7 @@ ipcMain.on('remove-all-hosts', async (): Promise<void> => {
 ipcMain.handle(
   'get-image-data',
   async (event, imageName, tempStoreMainImg, data?) => {
-    console.log(tempStoreMainImg);
+    console.log(imageName);
     if (!imageName) {
       return null;
     }
@@ -926,6 +920,54 @@ ipcMain.handle(
     } catch (error) {
       console.error('Failed to read image file:', error);
       return null;
+    }
+  },
+);
+
+ipcMain.handle(
+  'supabase-functions-dashboard',
+  async (_event, { message }: { message: Message }) => {
+    try {
+      if (!currentImage.data || !currentSvg.data) {
+        throw new Error('Image or SVG data is missing.');
+      }
+
+      const barcodes = message.content.map((item) => item.content);
+
+      const [alensaResult, supabaseResult, imgUpload, svgUpload] =
+        await Promise.all([
+          processBarcodesAlensa(barcodes),
+          uploadLog(message),
+          uploadBase64ToSupabase(
+            currentImage.data,
+            'images',
+            currentImage.name!,
+            'image/jpg',
+          ),
+          uploadBase64ToSupabase(
+            currentSvg.data,
+            'svg',
+            currentSvg.name!,
+            'image/svg+xml',
+          ),
+        ]);
+
+      return {
+        success: true,
+        alensa: alensaResult,
+        supabase: supabaseResult,
+        uploads: { img: imgUpload, svg: svgUpload },
+      };
+    } catch (error: any) {
+      console.error('API Handling Error:', error);
+      return {
+        success: false,
+        error: error.message || 'Unexpected error during API processing',
+      };
+    } finally {
+      // 4. Cleanup: Always reset state to free up memory, success or fail
+      currentImage = { data: null, name: null };
+      currentSvg = { data: null, name: null };
     }
   },
 );

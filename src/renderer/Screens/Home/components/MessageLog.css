@@ -85,11 +85,7 @@
 }
 
 .message-table tbody tr:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.05) 0%,
-    rgba(147, 51, 234, 0.05) 100%
-  );
+  background: #f9fafb;
 }
 
 .message-table td {

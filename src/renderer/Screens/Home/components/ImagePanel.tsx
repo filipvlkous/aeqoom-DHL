@@ -13,6 +13,7 @@ import useTcpStore from '../../../useTcpStore';
 type ImagePanelProps = {
   handlePhotoCapture: () => void;
   handleSendData: () => void;
+  toLastPhoto: () => void;
   history: boolean;
   loading: boolean;
 };
@@ -20,6 +21,7 @@ type ImagePanelProps = {
 export default function ImagePanel({
   handlePhotoCapture,
   handleSendData,
+  toLastPhoto,
   history,
   loading,
 }: ImagePanelProps) {
@@ -120,7 +122,7 @@ export default function ImagePanel({
               onClick={handlePhotoCapture}
               className="photo-button"
             >
-              <Camera size={20} />
+              {(!store.cameraBtnDisabled || loading) && <Camera size={20} />}
               {store.cameraBtnDisabled || loading ? 'Loading' : 'Take a Photo'}
             </button>
           ) : (
@@ -132,6 +134,11 @@ export default function ImagePanel({
             <button className="send-button" onClick={handleSendData}>
               <Send size={20} />
               Send data
+            </button>
+          )}
+          {!history && (
+            <button onClick={toLastPhoto} className="photo-button">
+              To last photo
             </button>
           )}
         </div>

@@ -1,6 +1,6 @@
 export default function KeyboardShortcuts() {
   return (
-    <div className="shortcuts-container bg-blue-50 border border-blue-200 rounded-lg m-3 p-3">
+    <div className="shortcuts-container bg-blue-50  border-blue-200 rounded-lg  p-3">
       <p className="text-xs text-blue-700 font-medium mb-1">
         Keyboard Shortcuts
       </p>

@@ -320,8 +320,9 @@ const useTcpStore = create<TcpStore>()(
         let imageName: string | null = null;
         if (json.image) {
           const total = json.image.trigger.index;
+          const time = json.image.trigger.creationTime;
 
-          imageName = json.image.name + '-' + total;
+          imageName = json.image.name + '-' + total + '-' + time;
 
           setTimeout(() => {
             get().setImage(imageName, true);

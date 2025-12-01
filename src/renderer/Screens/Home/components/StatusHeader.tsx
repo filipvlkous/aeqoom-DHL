@@ -1,4 +1,4 @@
-import logo from '../../../../../assets/ae-logo.jpg';
+import logo from '../../../../../assets/AeTableLogo.jpg';
 import useTcpStore from '../../../useTcpStore';
 
 export default function StatusHeader() {
@@ -10,8 +10,8 @@ export default function StatusHeader() {
   return (
     <>
       <img
-        style={{ width: '80px', height: '80px' }}
-        className="logo-img p-3 pb-4"
+        style={{ width: '100px', height: '100px' }}
+        className="logo-img  pb-4"
         src={logo}
         alt="Logo"
       />

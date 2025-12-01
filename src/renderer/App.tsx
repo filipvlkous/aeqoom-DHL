@@ -6,7 +6,7 @@ import Settings from './Screens/settings';
 import useTcpStore, { Message } from './useTcpStore';
 import { FtpConfig } from '../main/serverStore/types';
 import './App.css';
-import { Bounce, ToastContainer } from 'react-toastify';
+import Dashboard from './Screens/Dashboard/Dashboard';
 declare global {
   interface Window {
     ftpAPI: {
@@ -83,6 +83,7 @@ function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
 }

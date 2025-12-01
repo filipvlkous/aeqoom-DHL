@@ -1,3 +1,4 @@
+import { TimePeriod } from '../../renderer/Screens/Dashboard/Dashboard';
 import { Message } from '../../renderer/useTcpStore';
 
 export async function uploadLog(message: Message) {
@@ -87,3 +88,32 @@ export async function uploadBase64ToSupabase(
   const result = await response.json();
   return result;
 }
+
+export const callSupabaseFunction = async (
+  functionName: string,
+  params: { period_type: TimePeriod | null; target_regime?: number | null } = {
+    period_type: null,
+    target_regime: null,
+  },
+) => {
+  try {
+    const response = await fetch(
+      `${process.env.SUPABASE_URL}/rest/v1/rpc/${functionName}`,
+      {
+        method: 'POST',
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+          apikey: `${process.env.SUPABASE_KEY}`,
+          Authorization: `Bearer ${process.env.SUPABASE_KEY}`,
+        },
+        body: JSON.stringify(params),
+      },
+    );
+    if (!response.ok) throw new Error(`Failed`);
+    return await response.json();
+  } catch (error) {
+    console.error(`Error calling ${functionName}:`, error);
+    return null;
+  }
+};

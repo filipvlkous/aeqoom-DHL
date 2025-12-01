@@ -29,22 +29,27 @@ export default function EnhancedMessageLog({
       case 'ok':
         return (
           <>
-            <CheckCircle color="#0ea500" size={14} />
-            <span> Ok</span>
+            <span className={`type-badge ${type}`}>
+              <CheckCircle color="#0ea500" size={14} />
+              <span> Ok</span>
+            </span>
           </>
         );
       case 'nok':
         return (
           <>
-            <AlertCircle color="#a20000" size={14} />
-            <span>Not ok</span>
+            <span className={`type-badge ${type}`}>
+              <AlertCircle color="#a20000" size={14} />
+              <span>Not ok</span>
+            </span>
           </>
         );
       default:
         return (
           <>
-            <span>{type}</span>
-            <MessageSquare size={14} />
+            <span className={`type-badge ${type}`}>
+              <span>Received</span>
+            </span>
           </>
         );
     }
@@ -112,13 +117,7 @@ export default function EnhancedMessageLog({
                           {formatTimestamp(msg.receivedTime)}
                         </span>
                       </td>
-                      <td>
-                        <span
-                          className={`type-badge ${msg.type.toLowerCase()}`}
-                        >
-                          {getTypeIcon(msg.type)}
-                        </span>
-                      </td>
+                      <td>{getTypeIcon(msg.type)}</td>
                       <td>
                         <div className="content-wrapper">
                           <span className="content-badge">
@@ -165,27 +164,6 @@ export default function EnhancedMessageLog({
           <span>Last updated: {new Date().toLocaleTimeString()}</span>
         </div>
       </div>
-
-      {/* Image Modal
-      {selectedImage && (
-        <div className="modal-overlay" onClick={() => setSelectedImage(null)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3 className="modal-title">Image Preview</h3>
-            <p className="modal-text">
-              Image: <span className="modal-image-name">{selectedImage}</span>
-            </p>
-            <p className="modal-hint">
-              Implement your custom image loading logic here using the imageName
-            </p>
-            <button
-              onClick={() => setSelectedImage(null)}
-              className="modal-close-button"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )} */}
     </>
   );
 }

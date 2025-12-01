@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import useTcpStore from '../../useTcpStore';
-import { FolderSearch2, FolderCheck, Plus } from 'lucide-react';
+import { FolderSearch2, FolderCheck, Plus, ChartColumn } from 'lucide-react';
 import ModalAdd from './components/ModalAdd';
 import './home.css';
 import MessageLog from './components/MessageLog';
@@ -11,6 +11,7 @@ import JobControl from './components/JobControl';
 import StatusHeader from './components/StatusHeader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Link } from 'react-router-dom';
 
 // Constants
 const KEYBOARD_SHORTCUTS = {
@@ -46,6 +47,12 @@ function Home() {
     }
   };
 
+  const toLastPhoto = () => {
+    const img = store.messages[store.messages.length - 1];
+    setHistory(true);
+    store.setImage(img.imageName, false, img.content);
+  };
+
   const startFtpServer = async () => {
     try {
       const result = await window.ftpAPI.startFtp();
@@ -57,6 +64,7 @@ function Home() {
 
   // Action Handlers
   const handlePhotoCapture = () => {
+    setHistory(true);
     store.setImage(null, false);
     store.sendMessage('||>trigger on\r\n');
     store.setCameraBtnDisabled(true);
@@ -252,7 +260,7 @@ function Home() {
           <StatusHeader />
 
           {/* Message Controls */}
-          {shouldShowAddButton() && (
+          {shouldShowAddButton() && history && (
             <div className="flex items-center gap-4">
               <button
                 className="add-button px-2 py-1 rounded-full text-m"
@@ -283,6 +291,15 @@ function Home() {
             regimeCol={regimeCol}
           />
           <KeyboardShortcuts />
+
+          <Link
+            to="/dashboard"
+            className="dashboard-link"
+            // className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-50 w-full"
+          >
+            <ChartColumn />
+            <span>Dashboard</span>
+          </Link>
         </div>
 
         <BottomSideControl />
@@ -290,6 +307,7 @@ function Home() {
 
       <main className="flex-1 flex flex-col">
         <ImagePanel
+          toLastPhoto={toLastPhoto}
           handlePhotoCapture={handlePhotoCapture}
           handleSendData={handleSendData}
           history={history}

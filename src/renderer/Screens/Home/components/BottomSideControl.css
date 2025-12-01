@@ -1,0 +1,32 @@
+.btn-link {
+  /* display: flex; */
+  align-items: center;
+  gap: 0.5rem; /* tailwind gap-2 */
+  font-size: 0.875rem; /* tailwind text-sm */
+  line-height: 1.25rem;
+  color: #4b5563; /* tailwind text-gray-600 */
+  padding: 0.5rem; /* tailwind p-2 */
+  border-radius: 0.5rem; /* tailwind rounded-lg */
+  text-decoration: none;
+  box-sizing: border-box;
+  border-width: 1px;
+  border-color: #e9e9e9;
+  transition: all 200ms ease;
+}
+
+/* hover & focus */
+.btn-link:hover,
+.btn-link:focus-visible {
+  color: #2563eb; /* tailwind text-blue-600 */
+  background-color: #f9fafb; /* tailwind bg-gray-50 on hover */
+  outline: none;
+  scale: 1.02;
+}
+
+/* optional: make inner text span inherit color (usually automatic) */
+.nav-link > span {
+  display: inline-block;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}

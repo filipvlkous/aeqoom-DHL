@@ -1,6 +1,7 @@
-import { Wifi, WifiOff } from 'lucide-react';
+import { Settings, Wifi, WifiOff } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import useTcpStore from '../../../useTcpStore';
+import './BottomSideControl.css';
 
 export default function BottomSideControl() {
   const store = useTcpStore();
@@ -33,9 +34,11 @@ export default function BottomSideControl() {
       </div>
       <Link
         to="/settings"
-        className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-50 w-full"
+        style={{ display: 'flex', width: '100%' }}
+        className="btn-link"
       >
-        ⚙️ <span>Settings</span>
+        <Settings />
+        <span>Settings</span>
       </Link>
     </div>
   );
