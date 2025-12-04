@@ -15,7 +15,7 @@ export default function BottomSideControl() {
         {isConnected ? (
           <button
             onClick={store.disconnectAll}
-            className="w-full px-4 py-2 cursor-pointer bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center gap-2"
+            className="w-full px-4 py-2 cursor-pointer bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200"
           >
             <WifiOff className="w-4 h-4" /> Disconnect
           </button>
@@ -26,7 +26,7 @@ export default function BottomSideControl() {
                 store.connectToServer(store.activeConnection);
               }
             }}
-            className="w-full px-4 py-2 cursor-pointer bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center gap-2"
+            className="w-full px-4 py-2 cursor-pointer bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center gap-2 hover:scale-105 transition-all duration-200"
           >
             <Wifi className="w-4 h-4" /> Connect to Camera
           </button>

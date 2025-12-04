@@ -141,7 +141,6 @@ const ConnectionManagerView: React.FC = () => {
           <h2 className="text-xl font-semibold flex items-center ">
             FTP configuration
           </h2>
-          <p>{ftpConfig.rootPath}</p>
           {/* FTP Config Form */}
           {(
             [

@@ -1,14 +1,6 @@
 import React from 'react';
-import {
-  Camera,
-  Wifi,
-  WifiOff,
-  FolderSearch2,
-  FolderCheck,
-  Send,
-  Plus,
-} from 'lucide-react';
-import useTcpStore from '../../../useTcpStore';
+import { Camera, Send } from 'lucide-react';
+import useTcpStore, { Message } from '../../../useTcpStore';
 
 type ImagePanelProps = {
   handlePhotoCapture: () => void;
@@ -16,6 +8,7 @@ type ImagePanelProps = {
   toLastPhoto: () => void;
   history: boolean;
   loading: boolean;
+  lastPhoto: Message;
 };
 
 export default function ImagePanel({
@@ -24,10 +17,12 @@ export default function ImagePanel({
   toLastPhoto,
   history,
   loading,
+  lastPhoto,
 }: ImagePanelProps) {
   const store = useTcpStore();
   const isConnected = store.connections.some((c) => c.status === 'connected');
 
+  console.log(lastPhoto);
   return (
     <div className="flex flex-1 gap-4 m-4">
       <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col w-full border border-gray-200">
@@ -50,19 +45,22 @@ export default function ImagePanel({
                 src={store.svgImage}
                 alt="SVG Overlay"
                 style={{
+                  transform: 'scaleY(-1)',
+                  transformOrigin: 'center center', // Add this
+                  zIndex: 10,
                   minHeight: '40rem',
                   position: 'absolute',
                   maxWidth: '100%',
                   maxHeight: '100%',
                   objectFit: 'contain',
                   borderRadius: '0.5rem',
-                  transition: 'box-shadow 0.2s ease-in-out',
                 }}
               />
               <img
                 src={store.image}
                 alt="Captured"
                 style={{
+                  transform: 'scaleY(-1)',
                   minHeight: '40rem',
                   maxWidth: '100%',
                   maxHeight: '100%',
@@ -130,12 +128,15 @@ export default function ImagePanel({
               Connect to camera and select job
             </button>
           )}
-          {store.image && history && (
-            <button className="send-button" onClick={handleSendData}>
-              <Send size={20} />
-              Send data
-            </button>
-          )}
+          {store.image &&
+            history &&
+            lastPhoto.type !== 'OK' &&
+            lastPhoto.type !== 'NOK' && (
+              <button className="send-button" onClick={handleSendData}>
+                <Send size={20} />
+                Send data
+              </button>
+            )}
           {!history && (
             <button onClick={toLastPhoto} className="photo-button">
               To last photo

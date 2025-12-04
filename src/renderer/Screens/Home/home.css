@@ -169,6 +169,7 @@
 }
 
 .dashboard-link {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem; /* tailwind gap-2 */

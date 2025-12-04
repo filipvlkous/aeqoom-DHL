@@ -48,7 +48,7 @@ function processSvgAndReturnBase64(svgPath: string, jsonData: any): string {
           return '';
         }
 
-        return `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" stroke="red" stroke-width="5" fill="red" />`;
+        return `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" stroke="green" stroke-width="5" fill="green" />`;
       } catch (err: any) {
         console.error('Error at index:', i, err.message);
         return '';

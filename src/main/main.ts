@@ -9,21 +9,13 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import {
-  app,
-  BrowserWindow,
-  shell,
-  ipcMain,
-  dialog,
-  protocol,
-  IpcMainInvokeEvent,
-} from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog, protocol } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import * as fs from 'fs';
-import net, { createConnection, Socket } from 'net';
+import { createConnection, Socket } from 'net';
 const { v4: uuidv4 } = require('uuid');
 
 import FtpSrv from 'ftp-srv';
@@ -541,8 +533,8 @@ const createWindow = async (): Promise<void> => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1924,
+    height: 1080,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged

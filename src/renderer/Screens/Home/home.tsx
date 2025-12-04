@@ -1,12 +1,17 @@
 import { useEffect, useState } from 'react';
 import useTcpStore from '../../useTcpStore';
-import { FolderSearch2, FolderCheck, Plus, ChartColumn } from 'lucide-react';
+import {
+  FolderSearch2,
+  FolderCheck,
+  Plus,
+  ChartColumn,
+  History,
+} from 'lucide-react';
 import ModalAdd from './components/ModalAdd';
 import './home.css';
 import MessageLog from './components/MessageLog';
 import ImagePanel from './components/ImagePanel';
 import BottomSideControl from './components/BottomSideControl';
-import KeyboardShortcuts from './components/KeyboardShortcuts';
 import JobControl from './components/JobControl';
 import StatusHeader from './components/StatusHeader';
 import { toast, ToastContainer } from 'react-toastify';
@@ -28,6 +33,7 @@ function Home() {
   const [openModal, setOpenModal] = useState(false);
   const [history, setHistory] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [messageLogOpen, setMessageLogOpen] = useState(false);
 
   const latestMessage = store.messages[store.messages.length - 1];
 
@@ -265,6 +271,10 @@ function Home() {
               <button
                 className="add-button px-2 py-1 rounded-full text-m"
                 onClick={() => setOpenModal(true)}
+                disabled={
+                  store.messages[store.messages.length - 1].type !== 'OK' ||
+                  store.messages[store.messages.length - 1].type !== 'OK'
+                }
               >
                 <Plus className="w-4 h-4" /> Add
               </button>
@@ -275,7 +285,7 @@ function Home() {
           )}
 
           {/* Message Status */}
-          {messageStatus && (
+          {messageStatus && shouldShowAddButton() && history && (
             <div className="flex items-center gap-4">
               <span
                 className={`w-full px-4 py-2 ${messageStatus.color} text-white rounded-md hover:bg-green-600 flex items-center justify-center gap-2`}
@@ -290,7 +300,6 @@ function Home() {
             handleRegimeChange={handleRegimeChange}
             regimeCol={regimeCol}
           />
-          <KeyboardShortcuts />
 
           <Link
             to="/dashboard"
@@ -300,6 +309,13 @@ function Home() {
             <ChartColumn />
             <span>Dashboard</span>
           </Link>
+          <button
+            onClick={() => setMessageLogOpen(true)}
+            className="dashboard-link"
+          >
+            <History />
+            <span>Message Log</span>
+          </button>
         </div>
 
         <BottomSideControl />
@@ -312,16 +328,18 @@ function Home() {
           handleSendData={handleSendData}
           history={history}
           loading={loading}
-        />
-
-        <MessageLog
-          setHistory={setHistory}
-          messageLimit={MESSAGE_LIMIT}
-          messages={store.messages}
+          lastPhoto={store.messages[store.messages.length - 1]}
         />
       </main>
 
       <ModalAdd modal={openModal} setOpenModal={setOpenModal} />
+      <MessageLog
+        setHistory={setHistory}
+        messageLimit={MESSAGE_LIMIT}
+        messages={store.messages}
+        isOpen={messageLogOpen}
+        onClose={() => setMessageLogOpen(false)}
+      />
       <ToastContainer
         position="top-right"
         autoClose={5000}

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Wifi,
-  Image,
-  AlertCircle,
-  MessageSquare,
-  CheckCircle,
-} from 'lucide-react';
+import { Wifi, Image, AlertCircle, CheckCircle, X } from 'lucide-react';
 import './MessageLog.css';
 import useTcpStore, { Message } from '../../../useTcpStore';
 
@@ -14,6 +8,8 @@ interface MessageLogProps {
   messageLimit: number;
   onImageClick?: (imageName: string) => void;
   setHistory: React.Dispatch<React.SetStateAction<boolean>>;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function EnhancedMessageLog({
@@ -21,8 +17,12 @@ export default function EnhancedMessageLog({
   messageLimit = 10,
   onImageClick,
   setHistory,
+  isOpen,
+  onClose,
 }: MessageLogProps) {
   const { setImage } = useTcpStore();
+
+  if (!isOpen) return null;
 
   const getTypeIcon = (type: string) => {
     switch (type.toLowerCase()) {
@@ -68,102 +68,140 @@ export default function EnhancedMessageLog({
   };
 
   return (
-    <>
-      <div className="message-log-container">
-        <div className="table-container">
-          <table className="message-table">
-            <thead>
-              <tr>
-                <th>
-                  <span>Time</span>
-                </th>
-                <th>
-                  <span>Type</span>
-                </th>
-                <th>
-                  <span>Content</span>
-                </th>
-                <th>
-                  <span>Job</span>
-                </th>
-                <th className="center">
-                  <span>Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {messages.length === 0 ? (
-                <tr>
-                  <td colSpan={5}>
-                    <div className="empty-state">
-                      <div className="empty-icon">
-                        <Wifi size={40} />
-                      </div>
-                      <div className="empty-title">No messages yet</div>
-                      <div className="empty-subtitle">
-                        Messages will appear here when received
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                messages
-                  .slice(-messageLimit)
-                  .reverse()
-                  .map((msg, index) => (
-                    <tr key={msg.id}>
-                      <td>
-                        <span className="timestamp">
-                          {formatTimestamp(msg.receivedTime)}
-                        </span>
-                      </td>
-                      <td>{getTypeIcon(msg.type)}</td>
-                      <td>
-                        <div className="content-wrapper">
-                          <span className="content-badge">
-                            {msg.content.length}{' '}
-                            {msg.content.length === 1 ? 'item' : 'items'}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="regime-value">
-                          {msg.regime !== null ? msg.regime : 'N/A'}
-                        </span>
-                      </td>
-                      <td className="actions-cell">
-                        {msg.imageName && (
-                          <button
-                            onClick={() => {
-                              setHistory(
-                                msg.type.toLowerCase() === 'received' &&
-                                  index === 0,
-                              );
-                              setImage(msg.imageName, false, msg.content);
-                            }}
-                            className="action-button"
-                            title="View image"
-                          >
-                            <Image size={16} />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-              )}
-            </tbody>
-          </table>
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '90vw', width: '1200px', maxHeight: '90vh' }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '1rem 1.5rem',
+            borderBottom: '1px solid #e5e7eb',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>
+            Message Log
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '0.375rem',
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = '#f3f4f6')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+          >
+            <X size={24} />
+          </button>
         </div>
+        <div className="message-log-container" style={{ border: 'none' }}>
+          <div className="table-container">
+            <table className="message-table">
+              <thead>
+                <tr>
+                  <th>
+                    <span>Time</span>
+                  </th>
+                  <th>
+                    <span>Type</span>
+                  </th>
+                  <th>
+                    <span>Content</span>
+                  </th>
+                  <th>
+                    <span>Job</span>
+                  </th>
+                  <th className="center">
+                    <span>Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {messages.length === 0 ? (
+                  <tr>
+                    <td colSpan={5}>
+                      <div className="empty-state">
+                        <div className="empty-icon">
+                          <Wifi size={40} />
+                        </div>
+                        <div className="empty-title">No messages yet</div>
+                        <div className="empty-subtitle">
+                          Messages will appear here when received
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  messages
+                    .slice(-messageLimit)
+                    .reverse()
+                    .map((msg, index) => (
+                      <tr key={msg.id}>
+                        <td>
+                          <span className="timestamp">
+                            {formatTimestamp(msg.receivedTime)}
+                          </span>
+                        </td>
+                        <td>{getTypeIcon(msg.type)}</td>
+                        <td>
+                          <div className="content-wrapper">
+                            <span className="content-badge">
+                              {msg.content.length}{' '}
+                              {msg.content.length === 1 ? 'item' : 'items'}
+                            </span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="regime-value">
+                            {msg.regime !== null ? msg.regime : 'N/A'}
+                          </span>
+                        </td>
+                        <td className="actions-cell">
+                          {msg.imageName && (
+                            <button
+                              onClick={() => {
+                                setHistory(
+                                  msg.type.toLowerCase() === 'received' &&
+                                    index === 0,
+                                );
+                                setImage(msg.imageName, false, msg.content);
+                                onClose();
+                              }}
+                              className="action-button"
+                              title="View image"
+                            >
+                              <Image size={16} />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
-        {/* Footer */}
-        <div className="footer">
-          <span>
-            Showing {Math.min(messageLimit, messages.length)} of{' '}
-            {messages.length} messages
-          </span>
-          <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          {/* Footer */}
+          <div className="footer">
+            <span>
+              Showing {Math.min(messageLimit, messages.length)} of{' '}
+              {messages.length} messages
+            </span>
+            <span>Last updated: {new Date().toLocaleTimeString()}</span>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
