@@ -669,9 +669,9 @@ ipcMain.handle(
           reject(err);
         });
 
-        client.on('data', (buffer: Buffer) => {
+        client.on('data', async (buffer: Buffer) => {
           const data = buffer.toString();
-          const jsonData = safeParseJSON(data);
+          const jsonData = await safeParseJSON(data);
 
           if (jsonData && typeof jsonData === 'object' && 'codes' in jsonData) {
             tempData = jsonData.codes;
@@ -861,19 +861,39 @@ ipcMain.handle(
       : path.join(app.getAppPath(), 'ftp-root');
 
     const imagePath = path.join(rootPath, imageName);
+
+    // Helper function to check if file exists with retry
+    const waitForFile = async (
+      filePath: string,
+      retries = 5,
+      delay = 500,
+    ): Promise<boolean> => {
+      for (let i = 0; i < retries; i++) {
+        if (fs.existsSync(filePath)) {
+          return true;
+        }
+        if (i < retries - 1) {
+          console.log(
+            `File not found, retrying in ${delay}ms... (attempt ${i + 1}/${retries})`,
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+      return false;
+    };
+
     try {
-      if (!fs.existsSync(imagePath)) {
-        console.error(`Image not found at: ${imagePath}`);
+      const fileExists = await waitForFile(imagePath);
+
+      if (!fileExists) {
+        console.error(`Image not found at: ${imagePath} after retries`);
         return null;
       }
 
       const stats = fs.statSync(imagePath);
-
       const fileExtension = path.extname(imageName).slice(1).toLowerCase();
-
       if (fileExtension === 'svg') {
         const fileData = processSvgAndReturnBase64(imagePath, tempData);
-
         tempData = null;
 
         if (tempStoreMainImg) {
@@ -883,10 +903,8 @@ ipcMain.handle(
         return `data:image/svg+xml;base64,${fileData}`;
       }
 
-      // Read file as buffer
       const fileBuffer = fs.readFileSync(imagePath);
 
-      // If file is larger than 10MB, warn about potential issues
       if (stats.size > 10 * 1024 * 1024) {
         console.warn(
           `Large file detected (${(stats.size / 1024 / 1024).toFixed(2)} MB). Consider using file:// protocol instead.`,

@@ -272,8 +272,7 @@ function Home() {
                 className="add-button px-2 py-1 rounded-full text-m"
                 onClick={() => setOpenModal(true)}
                 disabled={
-                  store.messages[store.messages.length - 1].type !== 'OK' ||
-                  store.messages[store.messages.length - 1].type !== 'OK'
+                  store.messages[store.messages.length - 1].type !== 'received'
                 }
               >
                 <Plus className="w-4 h-4" /> Add

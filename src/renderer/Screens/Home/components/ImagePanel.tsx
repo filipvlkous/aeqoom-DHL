@@ -22,7 +22,6 @@ export default function ImagePanel({
   const store = useTcpStore();
   const isConnected = store.connections.some((c) => c.status === 'connected');
 
-  console.log(lastPhoto);
   return (
     <div className="flex flex-1 gap-4 m-4">
       <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col w-full border border-gray-200">

@@ -316,14 +316,13 @@ const useTcpStore = create<TcpStore>()(
 
     addMessage: async (connId, type, content: any) => {
       try {
-        const json = safeParseJSON(content);
+        const json = await safeParseJSON(content);
         let imageName: string | null = null;
         if (json.image) {
-          const total = json.image.trigger.index;
-          const time = json.image.trigger.creationTime;
+          const total = json.image.index;
+          const time = json.image.creationTime;
 
           imageName = json.image.name + '-' + total + '-' + time;
-
           setTimeout(() => {
             get().setImage(imageName, true);
           }, 1000);
@@ -361,6 +360,7 @@ const useTcpStore = create<TcpStore>()(
         });
       } catch (error) {
         console.error('Failed to parse message content as JSON:', error);
+        get().sendMessage('||>trigger on\r\n');
       }
     },
 
@@ -394,7 +394,7 @@ const useTcpStore = create<TcpStore>()(
 
     connectToServer: async (id) => {
       get().disconnectAll();
-      const { connections, updateConnection, addMessage } = get();
+      const { connections, updateConnection } = get();
       const conn = connections.find((c) => c.id === id);
 
       if (!conn || !window.tcpIp) return;
@@ -415,23 +415,19 @@ const useTcpStore = create<TcpStore>()(
               ? new Date().toISOString()
               : conn.lastConnected,
         });
-
-        addMessage(id, 'system', `Connection ${status}`);
       } catch (err: any) {
         updateConnection(id, { status: 'error' });
-        addMessage(id, 'system', `Error: ${err.message}`);
       }
     },
 
     disconnectFromServer: (id) => {
-      const { connections, updateConnection, addMessage } = get();
+      const { connections, updateConnection } = get();
       const conn = connections.find((c) => c.id === id);
 
       if (!conn?.remoteId || !window.tcpIp) return;
 
       window.tcpIp.disconnect(conn.remoteId);
       updateConnection(id, { status: 'disconnected' });
-      addMessage(id, 'system', 'Disconnected by user');
     },
 
     connectAll: () => {
@@ -520,7 +516,6 @@ const useTcpStore = create<TcpStore>()(
 
         if (data === '__disconnected__') {
           get().updateConnection(local.id, { status: 'disconnected' });
-          // get().addMessage(local.id, 'system', 'Connection disconnected');
         } else {
           get().addMessage(local.id, 'received', data);
           get().updateConnection(local.id, {

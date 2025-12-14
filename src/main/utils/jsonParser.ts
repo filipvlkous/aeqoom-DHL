@@ -1,7 +1,10 @@
-export function safeParseJSON<T = any>(str: string): T | null {
+export async function safeParseJSON<T = any>(
+  str: string | Promise<string>,
+): Promise<T | null> {
   try {
-    return JSON.parse(str);
+    const resolved = await str;
+    return JSON.parse(resolved);
   } catch {
-    return null; // or you could return {} or throw a custom error
+    return null;
   }
 }
