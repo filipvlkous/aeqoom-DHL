@@ -2,6 +2,7 @@ import { Plus, Type, X } from 'lucide-react';
 import React, { useState } from 'react';
 import './ModalAdd.css'; // import stylesheet
 import useTcpStore from '../../../useTcpStore';
+import { useTranslation } from 'react-i18next';
 
 export default function ModalAdd({
   modal,
@@ -10,6 +11,7 @@ export default function ModalAdd({
   modal: boolean;
   setOpenModal: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
+  const { t } = useTranslation();
   const { addContend } = useTcpStore();
   const [itemText, setItemText] = useState('');
   const [inc, setInc] = useState<number | ''>(1);
@@ -48,7 +50,7 @@ export default function ModalAdd({
       <div className="modal-content">
         {/* Modal Header */}
         <div className="modal-header">
-          <h2>Add Item to Image</h2>
+          <h2>{t('home.modalAdd.title')}</h2>
           <button onClick={closeModal} className="close-btn">
             <X size={24} />
           </button>
@@ -57,7 +59,7 @@ export default function ModalAdd({
         {/* Input Field */}
         <div className="modal-body">
           <div style={{ width: '100%' }}>
-            <label htmlFor="item-input">Item Code</label>
+            <label htmlFor="item-input">{t('home.modalAdd.label')}</label>
             <input
               id="item-input"
               style={{ width: '95%' }}
@@ -65,7 +67,7 @@ export default function ModalAdd({
               value={itemText}
               onChange={(e) => setItemText(e.target.value)}
               onKeyDown={handleKeyPress}
-              placeholder="Enter item code..."
+              placeholder={t('home.modalAdd.inputPlaceholder')}
               autoFocus
             />
           </div>
@@ -124,7 +126,6 @@ export default function ModalAdd({
                   if (e.target.value === '') setInc(1);
                 }}
                 onKeyDown={handleKeyPress}
-                placeholder="Enter item code..."
               />
               <button
                 onClick={() => {
@@ -153,7 +154,7 @@ export default function ModalAdd({
         {/* Buttons */}
         <div className="modal-actions">
           <button onClick={handleCancel} className="cancel-btn">
-            Cancel
+            {t('home.modalAdd.cancelButton')}
           </button>
           <button
             onClick={handleAdd}
@@ -161,7 +162,7 @@ export default function ModalAdd({
             className="add-btn"
           >
             <Plus size={16} />
-            Add Item
+            {t('home.modalAdd.addButton')}
           </button>
         </div>
       </div>

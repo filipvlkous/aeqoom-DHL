@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from './Screens/Home/home';
-import Settings from './Screens/settings';
+import Settings from './Screens/settings/settings';
 import useTcpStore, { Message } from './useTcpStore';
 import { FtpConfig } from '../main/serverStore/types';
 import './App.css';

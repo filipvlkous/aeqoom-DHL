@@ -2,6 +2,7 @@ import React from 'react';
 import { Wifi, Image, AlertCircle, CheckCircle, X } from 'lucide-react';
 import './MessageLog.css';
 import useTcpStore, { Message } from '../../../useTcpStore';
+import { useTranslation } from 'react-i18next';
 
 interface MessageLogProps {
   messages: Message[];
@@ -21,6 +22,7 @@ export default function EnhancedMessageLog({
   onClose,
 }: MessageLogProps) {
   const { setImage } = useTcpStore();
+  const { t, i18n } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -31,7 +33,7 @@ export default function EnhancedMessageLog({
           <>
             <span className={`type-badge ${type}`}>
               <CheckCircle color="#0ea500" size={14} />
-              <span> Ok</span>
+              <span>{t('home.messageLog.ok')}</span>
             </span>
           </>
         );
@@ -40,7 +42,7 @@ export default function EnhancedMessageLog({
           <>
             <span className={`type-badge ${type}`}>
               <AlertCircle color="#a20000" size={14} />
-              <span>Not ok</span>
+              <span>{t('home.messageLog.notOk')}</span>
             </span>
           </>
         );
@@ -48,7 +50,7 @@ export default function EnhancedMessageLog({
         return (
           <>
             <span className={`type-badge ${type}`}>
-              <span>Received</span>
+              <span>{t('home.messageLog.received')}</span>
             </span>
           </>
         );
@@ -84,7 +86,7 @@ export default function EnhancedMessageLog({
           }}
         >
           <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>
-            Message Log
+            {t('home.messageLog.title')}
           </h2>
           <button
             onClick={onClose}
@@ -111,19 +113,19 @@ export default function EnhancedMessageLog({
               <thead>
                 <tr>
                   <th>
-                    <span>Time</span>
+                    <span>{t('home.messageLog.time')}</span>
                   </th>
                   <th>
-                    <span>Type</span>
+                    <span>{t('home.messageLog.type')}</span>
                   </th>
                   <th>
-                    <span>Content</span>
+                    <span>{t('home.messageLog.connect')}</span>
                   </th>
                   <th>
-                    <span>Job</span>
+                    <span>{t('home.messageLog.job')}</span>
                   </th>
                   <th className="center">
-                    <span>Actions</span>
+                    <span>{t('home.messageLog.action')}</span>
                   </th>
                 </tr>
               </thead>
@@ -135,9 +137,11 @@ export default function EnhancedMessageLog({
                         <div className="empty-icon">
                           <Wifi size={40} />
                         </div>
-                        <div className="empty-title">No messages yet</div>
+                        <div className="empty-title">
+                          {t('home.messageLog.noMessages1')}
+                        </div>
                         <div className="empty-subtitle">
-                          Messages will appear here when received
+                          {t('home.messageLog.noMessages2')}
                         </div>
                       </div>
                     </td>

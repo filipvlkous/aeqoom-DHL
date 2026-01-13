@@ -31,6 +31,7 @@ import { processBarcodesAlensa } from './API/wmsAPI';
 import { Message } from '../renderer/useTcpStore';
 
 import dotenv from 'dotenv';
+import { cleanupUtil } from './utils/clearData';
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 log.transports.file.resolvePathFn = () =>
@@ -295,6 +296,7 @@ async function startFtpServer(): Promise<FtpServerResponse> {
     }
 
     let storedConfig = await ftpConfigService.getFtpConfig();
+    console.log(storedConfig);
     log.info('Stored config:', storedConfig);
 
     if (storedConfig && Object.keys(storedConfig).length > 0) {
@@ -1045,6 +1047,9 @@ app.on('window-all-closed', () => {
 
 app
   .whenReady()
+  .then(() => {
+    cleanupUtil.scheduleDailyCleanup();
+  })
   .then(() => {
     protocol.registerFileProtocol('local-file', (request, callback) => {
       // Get the path from the URL, e.g., 'ftp-root/DM3816-A8EEF0-70.bmp'

@@ -1,0 +1,117 @@
+{
+  "welcome": "Welcome",
+  "dashboard": "Statistics",
+  "history": "Image History",
+  "buttons": {
+    "back": "Back",
+    "add": "Add"
+  },
+  "settings": {
+    "ftpTitleSettings": "FTP configuration",
+    "ftp": {
+      "host": "Host",
+      "port": "Port",
+      "username": "Username",
+      "password": "Password",
+      "rootPath": "Root path",
+      "browse": "Browse",
+      "save": "Save",
+      "reset": "Reset to default"
+    },
+    "job": {
+      "jobsTitle": "Jobs",
+      "add": "Add",
+      "addPlaceholder": "New job value",
+      "remove": "Remove job",
+      "empty": "No jobs added"
+    },
+    "addConnection": {
+      "title": "Add new Camera",
+      "name": "Camera name",
+      "host": "IP cammera",
+      "port": "Camera port",
+      "add": "Add Port"
+    },
+    "connectionList": {
+      "title": "Camera list",
+      "noConnections": "No camera available",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "remove": "Remove",
+      "removeAll": "Remove all cameras",
+      "noCamera1": "No camera available",
+      "noCamera2": "Add a new camera and then click connect.",
+      "connecting": "Connecting...."
+    }
+  },
+  "home": {
+    "messageLog": {
+      "ok": "Ok",
+      "notOk": "Not ok",
+      "received": "Received",
+      "title": "Image History",
+      "time": "Time",
+      "type": "Type",
+      "connect": "box read",
+      "job": "Job",
+      "action": "Actions",
+      "noMessages1": "No messages received yet.",
+      "noMessages2": "Once messages are received, they will appear here.",
+      "item": "Item",
+      "items": "Items"
+    },
+    "statusHeader": {
+      "cameraConnected": "Camera status",
+      "ftpConnected": "FTP status",
+      "imageNumber": "Number of images"
+    },
+    "modalAdd": {
+      "title": "Add new item",
+      "inputPlaceholder": "Enter item value",
+      "label": "Item code",
+      "addButton": "Add item",
+      "cancelButton": "Cancel"
+    },
+    "jobControl": {
+      "title": "Jobs Control",
+      "choose": "-- Choose a Job --",
+      "minMax": "Min/Max Job",
+      "job": "Job"
+    },
+    "imagePanel": {
+      "noImage1": "No image received yet",
+      "noImage2": "Trigger a photo capture to see the latest image",
+      "connectCamera": "Connect to camera and select job",
+      "send": "Send data",
+      "lastPhoto": "To last Photo",
+      "takePhoto": "Take Photo",
+      "loading": "Loading..."
+    },
+    "bottomPanel": {
+      "connected": "Connect Camera",
+      "disconnected": "Disconnect Camera",
+      "settings": "Settings"
+    }
+  },
+  "analytics": {
+    "title": "Analytics Dashboard",
+    "description": "Monitor your system logs with real-time visualizations",
+    "time": "Time Period",
+    "totalSend": "Total Send Count",
+    "totalAdded": "Total Added Count",
+    "avgAdded": "Average Added Count",
+    "avgDuration": "Average Duration (ms)",
+    "sends": "Sends",
+    "added": "Added",
+    "scannedBoxes": "Scanned Boxes",
+    "noRegime": "No regime data available",
+    "prev": "Previous period",
+    "noData": "No data available",
+    "timeline": "Timeline Analytics",
+    "scanned": "Scanned Boxes",
+    "duration": "Duration (ms)",
+    "count": "Count"
+  }
+}

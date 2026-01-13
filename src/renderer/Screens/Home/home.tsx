@@ -17,6 +17,8 @@ import StatusHeader from './components/StatusHeader';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n';
 
 // Constants
 const KEYBOARD_SHORTCUTS = {
@@ -29,6 +31,8 @@ const MESSAGE_LIMIT = 10;
 
 function Home() {
   const store = useTcpStore();
+  const { t } = useTranslation();
+
   const [regimeCol, setRegimeCol] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [history, setHistory] = useState(true);
@@ -253,6 +257,11 @@ function Home() {
   useEffect(() => {
     fetchRegimeList();
     startFtpServer();
+    const stored = localStorage.getItem('lang');
+    if (stored) {
+      console.log('Stored language found:', stored);
+      i18n.changeLanguage(JSON.parse(stored));
+    }
   }, []);
 
   // Render Helpers
@@ -275,7 +284,7 @@ function Home() {
                   store.messages[store.messages.length - 1].type !== 'received'
                 }
               >
-                <Plus className="w-4 h-4" /> Add
+                <Plus className="w-4 h-4" /> {t('buttons.add')}
               </button>
               <span className="counter-badge text-blue-600 w-1/2 font-semibold bg-blue-50 px-2 py-1 rounded-full text-m">
                 {getMessageCounter()}
@@ -306,14 +315,15 @@ function Home() {
             // className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors duration-200 p-2 rounded-lg hover:bg-gray-50 w-full"
           >
             <ChartColumn />
-            <span>Dashboard</span>
+            <span>{t('dashboard')}</span>
           </Link>
+
           <button
             onClick={() => setMessageLogOpen(true)}
             className="dashboard-link"
           >
             <History />
-            <span>Message Log</span>
+            <span>{t('history')}</span>
           </button>
         </div>
 

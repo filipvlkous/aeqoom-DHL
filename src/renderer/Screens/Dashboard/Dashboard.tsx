@@ -17,6 +17,7 @@ import {
 import { TrendingUp, Activity, Loader2, Clock8 } from 'lucide-react';
 import './Dashboard.css';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 // Types
 export type TimePeriod = 'day' | 'week' | 'month';
@@ -188,10 +189,12 @@ const PercentChange = ({
   value,
   isPositive,
   arrowSide,
+  t,
 }: {
   value: number;
   isPositive: boolean;
   arrowSide: boolean;
+  t: any;
 }) => {
   return (
     <p
@@ -204,12 +207,14 @@ const PercentChange = ({
       }
       className={`stat-change ${isPositive ? 'text-green-600' : 'text-red-600'}`}
     >
-      {arrowSide ? '↑' : '↓'} {Math.abs(value).toFixed(1)}% from previous period
+      {arrowSide ? '↑' : '↓'} {Math.abs(value).toFixed(1)}%{' '}
+      {t('analytics.prev')}
     </p>
   );
 };
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [activeChart, setActiveChart] = useState<ChartType>('timeline');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('day');
   const [loading, setLoading] = useState(false);
@@ -269,9 +274,9 @@ export default function Dashboard() {
       : 0;
 
   const chartButtons: ChartButton[] = [
-    { id: 'timeline', icon: TrendingUp, label: 'Timeline Analysis' },
-    { id: 'daily_rows', icon: Activity, label: 'Scanned Boxes' }, // New Button
-    { id: 'duration', icon: Clock8, label: 'Duration Stats' },
+    { id: 'timeline', icon: TrendingUp, label: t('analytics.timeline') },
+    { id: 'daily_rows', icon: Activity, label: t('analytics.scanned') }, // New Button
+    { id: 'duration', icon: Clock8, label: t('analytics.duration') },
   ];
 
   return (
@@ -282,14 +287,12 @@ export default function Dashboard() {
         </Link>
 
         <div className="header-block">
-          <h1 className="header-title"> Analytics Dashboard</h1>
-          <p className="header-subtitle">
-            Monitor your system logs with real-time visualizations
-          </p>
+          <h1 className="header-title">{t('analytics.title')}</h1>
+          <p className="header-subtitle">{t('analytics.description')} </p>
         </div>
 
         <div className="period-selector">
-          <span className="period-label">Time Period:</span>
+          <span className="period-label">{t('analytics.time')}</span>
           <div className="period-buttons">
             {(['day', 'week', 'month'] as TimePeriod[]).map((period) => (
               <button
@@ -313,7 +316,7 @@ export default function Dashboard() {
           <>
             <div className="stats-grid">
               <div className="stat-card stat-blue">
-                <p className="stat-label">Total Send Count</p>
+                <p className="stat-label">{t('analytics.totalSend')}</p>
                 <p className="stat-value">
                   {stats.totalSendCount.toLocaleString()}
                 </p>
@@ -321,14 +324,16 @@ export default function Dashboard() {
                   value={stats.sendCountChange}
                   isPositive={stats.sendCountChange >= 0}
                   arrowSide={stats.sendCountChange >= 0}
+                  t={t}
                 />
               </div>
               <div className="stat-card stat-purple">
-                <p className="stat-label">Total Added Count</p>
+                <p className="stat-label">{t('analytics.totalAdded')}</p>
                 <p className="stat-value">
                   {stats.totalAddedCount.toLocaleString()}
                 </p>
                 <PercentChange
+                  t={t}
                   value={stats.addedCountChange}
                   isPositive={stats.sendCountChange <= 0}
                   arrowSide={stats.sendCountChange >= 0}
@@ -336,14 +341,14 @@ export default function Dashboard() {
               </div>
 
               <div className="stat-card stat-pink">
-                <p className="stat-label">Avg Added Count</p>
+                <p className="stat-label">{t('analytics.avgAdded')}</p>
                 <p className="stat-value">{avgAddedCount.toLocaleString()}</p>
-                <p className="stat-change">Per data point</p>
               </div>
               <div className="stat-card stat-purple">
-                <p className="stat-label">Avg Duration</p>
+                <p className="stat-label">{t('analytics.avgDuration')}</p>
                 <p className="stat-value">{stats.avgDuration}s</p>
                 <PercentChange
+                  t={t}
                   value={stats.durationChange}
                   isPositive={stats.sendCountChange <= 0}
                   arrowSide={stats.sendCountChange >= 0}
@@ -444,7 +449,7 @@ export default function Dashboard() {
                         stroke="#3b82f6"
                         fillOpacity={1}
                         fill="url(#colorSend)"
-                        name="Sends"
+                        name={t('analytics.sends')}
                       />
                       <Area
                         type="monotone"
@@ -452,7 +457,7 @@ export default function Dashboard() {
                         stroke="#b91010"
                         fillOpacity={1}
                         fill="url(#colorAdded)"
-                        name="Added"
+                        name={t('analytics.added')}
                       />
                     </AreaChart>
                   ) : activeChart === 'daily_rows' ? (
@@ -488,8 +493,7 @@ export default function Dashboard() {
                         dataKey="row_count"
                         fill="#10b981"
                         radius={[4, 4, 0, 0]}
-                        name="Scanned Boxes"
-                        // If only 1 bar (Today), limit width to 100px so it doesn't look weird
+                        name={t('analytics.count')}
                         maxBarSize={timePeriod === 'day' ? 100 : undefined}
                       />
                     </BarChart>
@@ -526,7 +530,7 @@ export default function Dashboard() {
                       </PieChart>
                     ) : (
                       <div className="flex h-full items-center justify-center text-gray-500">
-                        No regime data available
+                        {t('analytics.noData')}
                       </div>
                     )
                   ) : activeChart === 'duration' ? (
@@ -561,7 +565,7 @@ export default function Dashboard() {
                         dataKey="count"
                         fill="#8b5cf6"
                         radius={[4, 4, 0, 0]}
-                        name="Log Count"
+                        name={t('analytics.count')}
                       />
                     </BarChart>
                   ) : null}

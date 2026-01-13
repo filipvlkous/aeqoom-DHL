@@ -54,4 +54,8 @@ export const CONFIG_SCHEMA = {
     },
     default: DEFAULT_FTP_CONFIG,
   },
+  lastCleanup: {
+    type: 'string' as const,
+    default: '',
+  },
 } as const;

@@ -8,8 +8,12 @@ import {
   WifiOff,
   Settings,
   X,
+  Globe,
+  ChevronDown,
 } from 'lucide-react';
 import { FtpConfig } from '../../main/serverStore/types';
+import { useTranslation } from 'react-i18next';
+import './settings.css';
 
 interface NewConnectionForm {
   name: string;
@@ -30,6 +34,7 @@ const ConnectionManagerView: React.FC = () => {
     addRegime,
     removeRegime,
   } = useTcpStore();
+  const { t, i18n } = useTranslation();
 
   const [newConnection, setNewConnection] = useState<NewConnectionForm>({
     name: '',
@@ -131,6 +136,11 @@ const ConnectionManagerView: React.FC = () => {
     getFTPConfig();
   }, []);
 
+  const setLang = (data: string) => {
+    i18n.changeLanguage(data);
+    localStorage.setItem('lang', JSON.stringify(data));
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Add Connection Form */}
@@ -138,28 +148,45 @@ const ConnectionManagerView: React.FC = () => {
         {/* Connection Form */}
 
         <div className="bg-white rounded-lg shadow-sm p-6">
+          <div className="language-select-wrapper">
+            <Globe className="globe-icon" />
+            <select
+              value={i18n.language}
+              onChange={(e) => setLang(e.target.value)}
+              className="language-select"
+            >
+              <option value="en">English</option>
+              <option value="cs">Čeština</option>
+            </select>
+            <ChevronDown className="chevron-icon" />
+          </div>
           <h2 className="text-xl font-semibold flex items-center ">
-            FTP configuration
+            {t('settings.ftpTitleSettings')}
           </h2>
           {/* FTP Config Form */}
           {(
             [
               {
                 key: 'host',
-                label: 'Host',
+                label: t('settings.ftp.host'),
                 type: 'text',
                 placeholder: 'ftp.example.com',
               },
-              { key: 'port', label: 'Port', type: 'number', placeholder: '21' },
+              {
+                key: 'port',
+                label: t('settings.ftp.port'),
+                type: 'number',
+                placeholder: '21',
+              },
               {
                 key: 'username',
-                label: 'Username',
+                label: t('settings.ftp.username'),
                 type: 'text',
                 placeholder: 'ftpuser',
               },
               {
                 key: 'password',
-                label: 'Password',
+                label: t('settings.ftp.password'),
                 type: 'password',
                 placeholder: '••••••••',
               },
@@ -218,7 +245,7 @@ const ConnectionManagerView: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Root Path
+              {t('settings.ftp.rootPath')}
             </label>
             <div className="flex gap-2">
               <input
@@ -251,38 +278,46 @@ const ConnectionManagerView: React.FC = () => {
                 type="button"
                 className="px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
               >
-                Browse
+                {t('settings.ftp.browse')}
               </button>
             </div>
           </div>
 
-          <button
-            onClick={sendFtpConfig}
-            style={{ marginTop: '10px' }}
-            className="cursor-pointer pt-2 px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1"
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+            }}
           >
-            Save
-          </button>
-
-          <button
-            onClick={resetFtpConfig}
-            style={{ marginTop: '10px' }}
-            className="cursor-pointer pt-2 px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1"
-          >
-            Reset Default
-          </button>
+            {' '}
+            <button
+              onClick={resetFtpConfig}
+              style={{ marginTop: '10px' }}
+              className="cursor-pointer pt-2 px-3 py-1 text-sm bg-red-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1"
+            >
+              {t('settings.ftp.reset')}
+            </button>
+            <button
+              onClick={sendFtpConfig}
+              style={{ marginTop: '10px' }}
+              className="cursor-pointer pt-2 px-3 py-1 text-sm bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center gap-1"
+            >
+              {t('settings.ftp.save')}
+            </button>
+          </div>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Regime Management */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold flex items-center gap-2">
-              Jobs
+              {t('settings.job.jobsTitle')}
             </h2>
             <button
               onClick={() => setShowRegimeForm(!showRegimeForm)}
               className="cursor-pointer px-3 py-1 text-sm border rounded-md hover:bg-green-600 flex items-center gap-1"
             >
-              <Plus className="w-3 h-3" /> Add
+              <Plus className="w-3 h-3" /> {t('settings.job.add')}
             </button>
           </div>
 
@@ -295,7 +330,7 @@ const ConnectionManagerView: React.FC = () => {
                   type="number"
                   value={newRegime}
                   onChange={(e) => setNewRegime(e.target.value)}
-                  placeholder="Enter Job value"
+                  placeholder={t('settings.job.addPlaceholder')}
                   className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500"
                   onKeyPress={(e) => e.key === 'Enter' && handleAddRegime()}
                 />
@@ -308,7 +343,7 @@ const ConnectionManagerView: React.FC = () => {
                   }
                   className="cursor-pointer px-2 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add
+                  {t('settings.job.add')}
                 </button>
                 <button
                   onClick={() => {
@@ -337,7 +372,7 @@ const ConnectionManagerView: React.FC = () => {
                 <button
                   onClick={() => handleRemoveRegime(regime)}
                   className="cursor-pointer text-red-500 hover:text-red-700 p-1"
-                  title="Remove regime"
+                  title={t('settings.job.remove')}
                 >
                   <Trash2 className="w-3 h-3" />
                 </button>
@@ -346,7 +381,7 @@ const ConnectionManagerView: React.FC = () => {
             {regimeCol.length === 0 && (
               <div className="text-center py-4 text-gray-500">
                 <Settings className="w-6 h-6 mx-auto mb-2 text-gray-300" />
-                <p className="text-sm">No regimes configured</p>
+                <p className="text-sm">{t('settings.job.empty')}</p>
               </div>
             )}
           </div>
@@ -357,13 +392,15 @@ const ConnectionManagerView: React.FC = () => {
 
       <div className="lg:col-span-2">
         <div className="bg-white rounded-lg shadow-sm p-6">
-          <h2 className="text-xl font-semibold mb-4">Add Connection</h2>
+          <h2 className="text-xl font-semibold mb-4">
+            {t('settings.addConnection.title')}
+          </h2>
           <div className="space-y-4">
             {(['name', 'host', 'port'] as (keyof NewConnectionForm)[]).map(
               (field) => (
                 <div key={field}>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                    {t(`settings.addConnection.${field}`)}
                   </label>
                   <input
                     required
@@ -396,7 +433,8 @@ const ConnectionManagerView: React.FC = () => {
               }
               className="w-1/4 cursor-pointer px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              <Plus className="w-4 h-4" /> Add Connection
+              <Plus className="w-4 h-4" />
+              {t('settings.addConnection.add')}
             </button>
           </div>
         </div>
@@ -404,35 +442,17 @@ const ConnectionManagerView: React.FC = () => {
           style={{ marginTop: 10 }}
           className="bg-white rounded-lg pt-2 shadow-sm p-6"
         >
-          {/* <div
-            style={{ gap: '20px' }}
-            className="flex items-center gap-10 justify-between mb-4"
-          >
-            <button
-              onClick={connectAll}
-              className="flex-1 mr-2 px-4 py-2 cursor-pointer bg-green-500 text-white rounded-md hover:bg-green-600 flex items-center justify-center gap-2"
-            >
-              <Wifi className="w-4 h-4" /> Connect All
-            </button>
-            <button
-              onClick={disconnectAll}
-              className="flex-1 ml-2 cursor-pointer px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 flex items-center justify-center gap-2"
-            >
-              <WifiOff className="w-4 h-4" /> Disconnect All
-            </button>
-          </div> */}
-
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">
-              Connections ({connections.length})
+              {t('settings.connectionList.title')} ({connections.length})
             </h2>
             <div className="flex items-center gap-4 text-sm text-gray-600">
               <span className="text-green-500">
-                Online:{' '}
+                {t('settings.connectionList.online')}:{' '}
                 {connections.filter((c) => c.status === 'connected').length}
               </span>
               <span className="text-red-500">
-                Offline:{' '}
+                {t('settings.connectionList.offline')}:{' '}
                 {connections.filter((c) => c.status !== 'connected').length}
               </span>
             </div>
@@ -462,7 +482,7 @@ const ConnectionManagerView: React.FC = () => {
                       removeConnection(conn.id);
                     }}
                     className="text-red-500 hover:text-red-700 p-1"
-                    title="Remove connection"
+                    title={t('settings.connectionList.remove')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -470,13 +490,10 @@ const ConnectionManagerView: React.FC = () => {
                 <div className="text-sm text-gray-600 mb-2">
                   {conn.host}:{conn.port}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-3 h-3 text-gray-400" />
-                    <span className="text-xs text-gray-500">
-                      {conn.messageCount} messages
-                    </span>
-                  </div>
+                <div
+                  style={{ justifyContent: 'end' }}
+                  className="flex items-center"
+                >
                   <div className="flex gap-2">
                     {conn.status === 'connected' ? (
                       <button
@@ -486,7 +503,7 @@ const ConnectionManagerView: React.FC = () => {
                         }}
                         className="cursor-pointer px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600"
                       >
-                        Disconnect
+                        {t('settings.connectionList.disconnect')}
                       </button>
                     ) : (
                       <button
@@ -498,31 +515,34 @@ const ConnectionManagerView: React.FC = () => {
                         className="cursor-pointer px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {conn.status === 'connecting'
-                          ? 'Connecting...'
-                          : 'Connect'}
+                          ? t('settings.connectionList.connecting')
+                          : t('settings.connectionList.connect')}
                       </button>
                     )}
                   </div>
                 </div>
               </div>
             ))}
+
             {connections.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <MessageCircle className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                <p>No connections configured</p>
-                <p className="text-sm mt-1">Add a connection to get started</p>
+                <p> {t('settings.connectionList.noCamera1')}</p>
+                <p className="text-sm mt-1">
+                  {t('settings.connectionList.noCamera2')}
+                </p>
               </div>
             )}
           </div>
 
-          <button
+          {/* <button
             style={{ marginTop: '20px' }}
             onClick={removeAllConnections}
             disabled={connections.length === 0}
             className="mt-4 w-1/4 justify-end px-4 py-2 cursor-pointer bg-red-500 text-white rounded-md hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Remove All Connections
-          </button>
+            {t('settings.connectionList.removeAll')}
+          </button> */}
         </div>
       </div>
     </div>

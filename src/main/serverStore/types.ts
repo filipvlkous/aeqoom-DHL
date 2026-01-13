@@ -23,4 +23,5 @@ export interface AppConfig {
   hosts: HostEntry[];
   regime: number[];
   ftpConfig: FtpConfig;
+  lastCleanup: string;
 }

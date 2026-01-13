@@ -1,6 +1,7 @@
 import React from 'react';
 import { Camera, Send } from 'lucide-react';
 import useTcpStore, { Message } from '../../../useTcpStore';
+import { useTranslation } from 'react-i18next';
 
 type ImagePanelProps = {
   handlePhotoCapture: () => void;
@@ -20,15 +21,12 @@ export default function ImagePanel({
   lastPhoto,
 }: ImagePanelProps) {
   const store = useTcpStore();
+  const { t } = useTranslation();
   const isConnected = store.connections.some((c) => c.status === 'connected');
 
   return (
     <div className="flex flex-1 gap-4 m-4">
       <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col w-full border border-gray-200">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Latest Image</h3>
-        </div>
-
         <div
           style={{
             flex: 1,
@@ -94,19 +92,10 @@ export default function ImagePanel({
                 <Camera size={64} />
               </div>
               <p style={{ fontSize: '1.125rem', fontWeight: 500 }}>
-                No image received yet
+                {t('home.imagePanel.noImage1')}
               </p>
               <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                Trigger a photo capture to see the latest image
-              </p>
-              <p
-                style={{
-                  fontSize: '0.75rem',
-                  marginTop: '0.5rem',
-                  color: '#2563EB',
-                }}
-              >
-                Press P to capture
+                {t('home.imagePanel.noImage2')}
               </p>
             </div>
           )}
@@ -120,11 +109,13 @@ export default function ImagePanel({
               className="photo-button"
             >
               {(!store.cameraBtnDisabled || loading) && <Camera size={20} />}
-              {store.cameraBtnDisabled || loading ? 'Loading' : 'Take a Photo'}
+              {store.cameraBtnDisabled || loading
+                ? t('home.imagePanel.loading')
+                : t('home.imagePanel.takePhoto')}
             </button>
           ) : (
             <button className="disabled-button" disabled>
-              Connect to camera and select job
+              {t('home.imagePanel.connectCamera')}
             </button>
           )}
           {store.image &&
@@ -133,12 +124,12 @@ export default function ImagePanel({
             lastPhoto.type !== 'NOK' && (
               <button className="send-button" onClick={handleSendData}>
                 <Send size={20} />
-                Send data
+                {t('home.imagePanel.send')}
               </button>
             )}
           {!history && (
             <button onClick={toLastPhoto} className="photo-button">
-              To last photo
+              {t('home.imagePanel.lastPhoto')}
             </button>
           )}
         </div>
