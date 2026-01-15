@@ -317,7 +317,6 @@ const useTcpStore = create<TcpStore>()(
     addMessage: async (connId, type, content: any) => {
       try {
         const json = await safeParseJSON(content);
-        console.log('Parsed JSON message:', json);
         let imageName: string | null = null;
         if (json.image) {
           const total = json.image.index;
