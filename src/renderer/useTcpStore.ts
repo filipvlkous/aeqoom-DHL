@@ -30,6 +30,7 @@ export interface Message {
   connectionId: string;
   type: string;
   content: ContentBuild[];
+  createBox: boolean;
   receivedTime: string;
   regime: number | null;
   imageName: string | null;
@@ -83,6 +84,10 @@ interface TcpStore {
   svgImage: string | null;
   image: string | null;
   cameraBtnDisabled: boolean;
+  inboundId: number | null;
+  setInboundId: (id: number | null) => void;
+  createBox: boolean;
+  setCreateBox: (value: boolean) => void;
   // Actions
   updateConnection: (id: string, updates: Partial<TcpConnection>) => void;
   addConnection: (form: NewConnectionForm) => Promise<void>;
@@ -120,6 +125,7 @@ interface TcpStore {
   updateContend: (value: boolean) => void;
 
   setCameraBtnDisabled: (value: boolean) => void;
+  resetState: () => void;
 }
 
 const useTcpStore = create<TcpStore>()(
@@ -138,7 +144,23 @@ const useTcpStore = create<TcpStore>()(
     image: null,
     messageBuffers: new Map(),
     cameraBtnDisabled: false,
+    inboundId: null,
+    createBox: false,
 
+    setInboundId: (id: number | null) => set({ inboundId: id }),
+    setCreateBox: (value: boolean) => set({ createBox: value }),
+
+    resetState: () => {
+      set({
+        image: null,
+        svgImage: null,
+        cameraBtnDisabled: false,
+        totalPhotos: 0,
+        messages: [],
+        createBox: false,
+        inboundId: null,
+      });
+    },
     updateConnection: (id, updates) =>
       set((state) => ({
         connections: state.connections.map((conn) =>
@@ -344,6 +366,7 @@ const useTcpStore = create<TcpStore>()(
           receivedTime: new Date().toISOString(),
           imageName: imageName,
           regime: get().regime,
+          createBox: get().createBox,
           sendTime: null,
         };
 
@@ -480,6 +503,9 @@ const useTcpStore = create<TcpStore>()(
         }));
         set({ connections: initialConnections });
         set({ activeConnection: await window.selectedHost.getSelectedHost() });
+        if (get().activeConnection) {
+          get().connectToServer(await window.selectedHost.getSelectedHost());
+        }
       } catch (error) {
         console.error('Failed to initialize connections:', error);
       }

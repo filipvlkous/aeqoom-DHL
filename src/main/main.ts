@@ -23,15 +23,20 @@ import { FtpConfig, HostEntry } from './serverStore/types';
 
 import { ftpConfigService } from './serverStore/services/ftpService';
 import { hostService } from './serverStore/services/hostService';
-import { regimeService } from './serverStore';
+import { regimeService, storeService } from './serverStore';
 import { safeParseJSON } from './utils/jsonParser';
 import { processSvgAndReturnBase64 } from './utils/jsonFilter';
 import { uploadBase64ToSupabase, uploadLog } from './API/supabaseAPI';
-import { processBarcodesAlensa } from './API/wmsAPI';
+import {
+  processBarcodesAlensa,
+  finishInboundAlensa,
+  logoutAlensa,
+} from './API/wmsAPI';
 import { Message } from '../renderer/useTcpStore';
 
 import dotenv from 'dotenv';
 import { cleanupUtil } from './utils/clearData';
+import { Rss } from 'lucide-react';
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
 log.transports.file.resolvePathFn = () =>
@@ -296,7 +301,6 @@ async function startFtpServer(): Promise<FtpServerResponse> {
     }
 
     let storedConfig = await ftpConfigService.getFtpConfig();
-    console.log(storedConfig);
     log.info('Stored config:', storedConfig);
 
     if (storedConfig && Object.keys(storedConfig).length > 0) {
@@ -537,6 +541,7 @@ const createWindow = async (): Promise<void> => {
     show: false,
     width: 1924,
     height: 1080,
+    fullscreen: true,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged
@@ -945,10 +950,11 @@ ipcMain.handle(
       }
 
       const barcodes = message.content.map((item) => item.content);
+      const createBox = message.createBox;
 
       const [alensaResult, supabaseResult, imgUpload, svgUpload] =
         await Promise.all([
-          processBarcodesAlensa(barcodes),
+          processBarcodesAlensa(barcodes, createBox),
           uploadLog(message),
           uploadBase64ToSupabase(
             currentImage.data,
@@ -993,10 +999,11 @@ ipcMain.handle(
       }
 
       const barcodes = message.content.map((item) => item.content);
+      const createBox = message.createBox;
 
       const [alensaResult, supabaseResult, imgUpload, svgUpload] =
         await Promise.all([
-          processBarcodesAlensa(barcodes),
+          processBarcodesAlensa(barcodes, createBox),
           uploadLog(message),
           uploadBase64ToSupabase(
             currentImage.data,
@@ -1029,6 +1036,136 @@ ipcMain.handle(
       currentImage = { data: null, name: null };
       currentSvg = { data: null, name: null };
     }
+  },
+);
+
+// Auth token IPC handlers
+const AUTH_API_BASE = 'https://one.alensis.cz/api2/rest';
+
+ipcMain.handle(
+  'auth-login',
+  async (
+    _event: Electron.IpcMainInvokeEvent,
+    payload: { id: number; hashedId: string },
+  ): Promise<{ token: string }> => {
+    const res = await fetch(`${AUTH_API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        byId: true,
+        id: payload.id,
+        hashedId: payload.hashedId,
+        appId: 4,
+        appVersion: 1000000,
+      }),
+    });
+
+
+    if (!res.ok) {
+      const body = await res.text();
+      let message: string;
+      try {
+        const json = JSON.parse(body);
+        message = json.error || json.message || body;
+      } catch {
+        message = body;
+      }
+      throw new Error(message || `Server error: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (!data.status || !data.token) {
+      throw new Error(data.error || 'Login failed. Invalid credentials.');
+    }
+
+    await storeService.set('authToken', data.token);
+    return { token: data.token };
+  },
+);
+
+ipcMain.handle('get-auth-token', async (): Promise<string> => {
+  return await storeService.get('authToken') || '';
+});
+
+ipcMain.handle(
+  'set-auth-token',
+  async (_event: Electron.IpcMainInvokeEvent, token: string): Promise<void> => {
+    await storeService.set('authToken', token);
+  },
+);
+
+ipcMain.handle('clear-auth-token', async (): Promise<void> => {
+  await storeService.set('authToken', '');
+});
+
+ipcMain.handle('auth-logout', async (): Promise<{ success: boolean; error: string | null }> => {
+  return logoutAlensa();
+});
+
+// Inbound IPC handlers
+
+ipcMain.handle(
+  'start-inbound',
+  async (
+    _event: Electron.IpcMainInvokeEvent,
+    { inboundId, token }: { inboundId: number; token: string },
+  ): Promise<void> => {
+
+    console.log('Starting inbound with ID:', inboundId);
+    const res = await fetch(
+      `${AUTH_API_BASE}/inbounds/startInboundOnScanningStation`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ inboundId }),
+      },
+    );
+
+    if (!res.ok) {
+      const body = await res.text();
+      let message: string;
+      try {
+        const json = JSON.parse(body);
+        message = json.message || json.error || body;
+      } catch {
+        message = body;
+      }
+      throw new Error(message || `Server error: ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    if (!data.status) {
+      throw new Error(data.error || 'Inbound start failed');
+    }
+
+    await storeService.set('inboundId', inboundId);
+  },
+);
+
+ipcMain.handle(
+  'set-inbound-id',
+  async (_event: Electron.IpcMainInvokeEvent, id: number): Promise<void> => {
+    await storeService.set('inboundId', id);
+  },
+);
+
+ipcMain.handle('get-inbound-id', async (): Promise<number> => {
+  return (await storeService.get('inboundId')) || 0;
+});
+
+ipcMain.handle(
+  'finish-inbound',
+  async (_event: Electron.IpcMainInvokeEvent, inboundId: number) => {
+    const result = await finishInboundAlensa(inboundId);
+    if (result.success) {
+      await storeService.set('inboundId', 0);
+    }
+    return result;
   },
 );
 

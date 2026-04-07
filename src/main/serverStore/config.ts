@@ -58,4 +58,12 @@ export const CONFIG_SCHEMA = {
     type: 'string' as const,
     default: '',
   },
+  authToken: {
+    type: 'string' as const,
+    default: '',
+  },
+  inboundId: {
+    type: 'number' as const,
+    default: 0,
+  },
 } as const;

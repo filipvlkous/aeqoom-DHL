@@ -4,11 +4,11 @@ import './settings.css';
 
 const Settings = () => {
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       <Link to="/" className="btn-link">
         <span> ← Back</span>
       </Link>
-      <div style={{ paddingInline: '20px' }} />
+      <div style={{ paddingInline: '20px' }}></div>
       <ConnectionManagerView />
     </div>
   );

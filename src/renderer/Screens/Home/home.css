@@ -196,10 +196,173 @@
   scale: 1.02;
 }
 
+/* Finish inbound button */
+.finish-inbound-btn {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  color: #ef4444;
+  padding: 0.7rem;
+  margin-top: 10px;
+  border-radius: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #fecaca;
+  background-color: transparent;
+  transition: all 200ms ease;
+}
+
+.finish-inbound-btn:hover,
+.finish-inbound-btn:focus-visible {
+  color: #dc2626;
+  background-color: #fff1f2;
+  outline: none;
+  scale: 1.02;
+}
+
 /* optional: make inner text span inherit color (usually automatic) */
 .nav-link > span {
   display: inline-block;
   color: inherit;
   font-size: inherit;
   line-height: inherit;
+}
+
+/* API Error blocking modal */
+.api-error-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.api-error-dialog {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 360px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.api-error-icon {
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fef2f2;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+}
+
+.api-error-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.api-error-message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.api-error-close-btn {
+  margin-top: 0.5rem;
+  padding: 0.6rem 2rem;
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.api-error-close-btn:hover {
+  background-color: #dc2626;
+}
+
+/* API Success blocking modal */
+.api-success-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.api-success-dialog {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+}
+
+.api-success-icon {
+  color: #22c55e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0fdf4;
+  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+}
+
+.api-success-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.api-success-message {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.api-success-close-btn {
+  margin-top: 0.5rem;
+  padding: 0.6rem 2.5rem;
+  background-color: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+}
+
+.api-success-close-btn:hover {
+  background-color: #16a34a;
 }

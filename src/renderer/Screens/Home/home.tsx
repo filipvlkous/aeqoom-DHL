@@ -1,11 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useTcpStore from '../../useTcpStore';
 import {
   FolderSearch2,
   FolderCheck,
+  CheckCircle,
   Plus,
   ChartColumn,
   History,
+  LogOut,
+  AlertTriangle,
+  BookmarkX,
 } from 'lucide-react';
 import ModalAdd from './components/ModalAdd';
 import './home.css';
@@ -19,25 +23,50 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18n from '../../../i18n';
+import InboundSelect from '../InboundSelect/InboundSelect';
 
 // Constants
-const KEYBOARD_SHORTCUTS = {
-  CAPTURE: 'KeyP',
-  ADD: 'KeyA',
-  SEND: 'KeyS',
-} as const;
-
 const MESSAGE_LIMIT = 10;
 
-function Home() {
+function Home({
+  authToken,
+  onLogout,
+}: {
+  authToken: string;
+  onLogout: () => void;
+}) {
   const store = useTcpStore();
   const { t } = useTranslation();
+  const inboundId = useTcpStore((state) => state.inboundId);
+  const setInboundId = useTcpStore((state) => state.setInboundId);
+
+  // Restore inboundId from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('inboundId');
+    if (stored) {
+      const parsed = parseInt(stored, 10);
+      console.log('Restoring inboundId from localStorage:', parsed);
+      if (!isNaN(parsed)) setInboundId(parsed);
+    }
+  }, []);
+
+  // Persist inboundId to localStorage whenever it changes
+  useEffect(() => {
+    if (inboundId !== null && inboundId !== undefined) {
+      localStorage.setItem('inboundId', String(inboundId));
+    } else {
+      localStorage.removeItem('inboundId');
+    }
+  }, [inboundId]);
 
   const [regimeCol, setRegimeCol] = useState<number[]>([]);
   const [openModal, setOpenModal] = useState(false);
   const [history, setHistory] = useState(true);
   const [loading, setLoading] = useState(false);
   const [messageLogOpen, setMessageLogOpen] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const latestMessage = store.messages[store.messages.length - 1];
 
@@ -68,16 +97,24 @@ function Home() {
       const result = await window.ftpAPI.startFtp();
       console.log('FTP Server auto-started:', result);
     } catch (error) {
+      toast.error('Unable to start FTP server', {
+        autoClose: false,
+        closeOnClick: true,
+      });
       console.error('Failed to auto-start FTP server:', error);
     }
   };
 
   // Action Handlers
   const handlePhotoCapture = () => {
+    setShowSuccess(false);
     setHistory(true);
     store.setImage(null, false);
     store.sendMessage('||>trigger on\r\n');
     store.setCameraBtnDisabled(true);
+    setTimeout(() => {
+      store.setCameraBtnDisabled(false);
+    }, 9000);
   };
 
   const handleSendData = async () => {
@@ -90,7 +127,6 @@ function Home() {
     const data = store.sendDataMessage();
 
     if (!data) {
-      console.warn('No data to send');
       toast.update(toastId, {
         render: 'No data to send',
         type: 'warning',
@@ -106,29 +142,22 @@ function Home() {
       const res = await window.APIs.sendDataToApis(data);
 
       if (res.alensa.success && res.supabase.success) {
-        toast.update(toastId, {
-          render: 'Data sent successfully!',
-          type: 'success',
-          isLoading: false,
-          autoClose: 4000,
-        });
+        toast.dismiss(toastId);
+        setShowSuccess(true);
+        if (successTimerRef.current) clearTimeout(successTimerRef.current);
+        successTimerRef.current = setTimeout(
+          () => setShowSuccess(false),
+          60000,
+        );
         store.updateContend(true);
       } else {
-        toast.update(toastId, {
-          render: res.alensa.error || 'Failed to send data',
-          type: 'error',
-          isLoading: false,
-          autoClose: 4000,
-        });
+        toast.dismiss(toastId);
+        setApiError(res.alensa.error || 'Failed to send data');
         store.updateContend(false);
       }
     } catch (err) {
-      toast.update(toastId, {
-        render: 'An error occurred while sending data',
-        type: 'error',
-        isLoading: false,
-        autoClose: 4000,
-      });
+      toast.dismiss(toastId);
+      setApiError('An error occurred while sending data');
       store.updateContend(false);
     } finally {
       setLoading(false);
@@ -205,47 +234,14 @@ function Home() {
   // Keyboard Event Handler
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      // Prevent actions when modal is open
-      if (openModal && event.code !== KEYBOARD_SHORTCUTS.ADD) return;
+      if (!event.ctrlKey || !event.shiftKey || openModal) return;
 
-      switch (event.code) {
-        case KEYBOARD_SHORTCUTS.CAPTURE:
-          event.preventDefault();
-          handlePhotoCapture();
-          break;
-
-        case KEYBOARD_SHORTCUTS.SEND:
-          event.preventDefault();
-          handleSendData();
-          break;
-
-        case KEYBOARD_SHORTCUTS.ADD:
-          if (shouldShowAddButton()) {
-            event.preventDefault();
-            if (!openModal) {
-              setOpenModal(true);
-            } else {
-              // Allow typing 'A' in input when modal is open
-              const activeElement = document.activeElement as HTMLInputElement;
-              if (activeElement?.tagName === 'INPUT') {
-                const start =
-                  activeElement.selectionStart ?? activeElement.value.length;
-                const end =
-                  activeElement.selectionEnd ?? activeElement.value.length;
-                const newValue =
-                  activeElement.value.substring(0, start) +
-                  'A' +
-                  activeElement.value.substring(end);
-
-                activeElement.value = newValue;
-                activeElement.setSelectionRange(start + 1, start + 1);
-                activeElement.dispatchEvent(
-                  new Event('input', { bubbles: true }),
-                );
-              }
-            }
-          }
-          break;
+      if (event.key === 'P') {
+        event.preventDefault();
+        handlePhotoCapture();
+      } else if (event.key === 'S') {
+        event.preventDefault();
+        handleSendData();
       }
     };
 
@@ -268,9 +264,12 @@ function Home() {
   const messageStatus = getMessageStatus();
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div style={styles.container} className="bg-gray-100 flex overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r shadow-sm p-4 flex flex-col h-full">
+      <aside
+        style={{ height: '100vh' }}
+        className="w-64 bg-white border-r shadow-sm p-4 flex flex-col"
+      >
         <div className="flex-1 space-y-4">
           <StatusHeader />
 
@@ -325,21 +324,152 @@ function Home() {
             <History />
             <span>{t('history')}</span>
           </button>
+
+          {/* Vytvořit box */}
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-3 space-y-2">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
+              {t('home.createBox.title')}
+            </span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => store.setCreateBox(true)}
+                className={`cursor-pointer flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all shadow-sm ${
+                  store.createBox
+                    ? 'bg-green-500 text-white shadow-green-200 scale-105'
+                    : 'bg-white text-gray-400 border border-gray-200 hover:border-green-300 hover:text-green-500'
+                }`}
+              >
+                {t('home.createBox.yes')}
+              </button>
+              <button
+                onClick={() => store.setCreateBox(false)}
+                className={`cursor-pointer flex-1 py-2.5 px-2 rounded-lg text-sm font-bold transition-all shadow-sm ${
+                  !store.createBox
+                    ? 'bg-red-500 text-white shadow-red-200 scale-105'
+                    : 'bg-white text-gray-400 border border-gray-200 hover:border-red-300 hover:text-red-500'
+                }`}
+              >
+                {t('home.createBox.no')}
+              </button>
+            </div>
+          </div>
+
+          {/* Ukončit příjemku */}
+          {inboundId && (
+            <button
+              onClick={async () => {
+                if (!store.inboundId) return;
+                const toastId = toast.loading(t('home.finishInbound.loading'));
+
+                try {
+                  const res = await window.inboundAPI.finishInbound(
+                    store.inboundId,
+                  );
+                  if (res.success) {
+                    store.resetState();
+                    localStorage.removeItem('inboundId');
+                    toast.update(toastId, {
+                      render: t('home.finishInbound.success'),
+                      type: 'success',
+                      isLoading: false,
+                      autoClose: 3000,
+                    });
+                  } else {
+                    toast.update(toastId, {
+                      render: res.error || t('home.finishInbound.error'),
+                      type: 'error',
+                      isLoading: false,
+                      autoClose: 4000,
+                    });
+                  }
+                } catch (err: any) {
+                  toast.update(toastId, {
+                    render: err.message || t('home.finishInbound.error'),
+                    type: 'error',
+                    isLoading: false,
+                    autoClose: 4000,
+                  });
+                }
+              }}
+              className="finish-inbound-btn"
+            >
+              <BookmarkX className="w-4 h-4" />
+              <span>{t('home.finishInbound.button')}</span>
+            </button>
+          )}
+
+          {/* Logout button */}
+          <button
+            onClick={async () => {
+              if (store.inboundId) {
+                const res = await window.inboundAPI.finishInbound(
+                  store.inboundId,
+                );
+                if (!res.success) {
+                  toast.error(res.error || t('home.finishInbound.error'));
+                }
+                localStorage.removeItem('inboundId');
+              }
+              store.resetState();
+              onLogout();
+            }}
+            className="finish-inbound-btn"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>{t('logout.button')}</span>
+          </button>
+
+          {/* <button
+            onClick={async () => {
+              await localStorage.removeItem('authToken');
+              await localStorage.removeItxem('inboundId');
+            }}
+            className="finish-inbound-btn"
+          >
+            <LogOut className="w-4 h-4" />
+            reset
+          </button> */}
         </div>
 
         <BottomSideControl />
       </aside>
 
-      <main className="flex-1 flex flex-col">
-        <ImagePanel
-          toLastPhoto={toLastPhoto}
-          handlePhotoCapture={handlePhotoCapture}
-          handleSendData={handleSendData}
-          history={history}
-          loading={loading}
-          lastPhoto={store.messages[store.messages.length - 1]}
+      {!inboundId ? (
+        <InboundSelect
+          token={authToken}
+          onInboundSelected={(id) => setInboundId(id)}
         />
-      </main>
+      ) : (
+        <div className="flex-1 flex flex-col min-h-0">
+          <ImagePanel
+            toLastPhoto={toLastPhoto}
+            handlePhotoCapture={handlePhotoCapture}
+            handleSendData={handleSendData}
+            history={history}
+            loading={loading}
+            lastPhoto={store.messages[store.messages.length - 1]}
+            showSuccess={showSuccess}
+          />
+        </div>
+      )}
+
+      {apiError && (
+        <div className="api-error-overlay">
+          <div className="api-error-dialog">
+            <div className="api-error-icon">
+              <AlertTriangle size={32} />
+            </div>
+            <h3 className="api-error-title">{t('home.errorModal.title')}</h3>
+            <p className="api-error-message">{apiError}</p>
+            <button
+              className="api-error-close-btn"
+              onClick={() => setApiError(null)}
+            >
+              {t('home.errorModal.close')}
+            </button>
+          </div>
+        </div>
+      )}
 
       <ModalAdd modal={openModal} setOpenModal={setOpenModal} />
       <MessageLog
@@ -362,5 +492,14 @@ function Home() {
     </div>
   );
 }
+
+const styles = {
+  container: {
+    display: 'flex',
+    alignItems: 'stretch',
+    height: '100vh',
+    width: '100vw',
+  },
+};
 
 export default Home;

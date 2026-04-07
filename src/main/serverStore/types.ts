@@ -24,4 +24,6 @@ export interface AppConfig {
   regime: number[];
   ftpConfig: FtpConfig;
   lastCleanup: string;
+  authToken: string;
+  inboundId: number;
 }

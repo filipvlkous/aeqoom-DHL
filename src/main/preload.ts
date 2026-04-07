@@ -111,6 +111,23 @@ contextBridge.exposeInMainWorld('ftpAPI', {
   },
 });
 
+contextBridge.exposeInMainWorld('authAPI', {
+  login: (payload: { id: number; hashedId: string }) =>
+    ipcRenderer.invoke('auth-login', payload),
+  getToken: () => ipcRenderer.invoke('get-auth-token'),
+  setToken: (token: string) => ipcRenderer.invoke('set-auth-token', token),
+  clearToken: () => ipcRenderer.invoke('clear-auth-token'),
+  logout: () => ipcRenderer.invoke('auth-logout'),
+});
+
+contextBridge.exposeInMainWorld('inboundAPI', {
+  startInbound: (inboundId: number, token: string) =>
+    ipcRenderer.invoke('start-inbound', { inboundId, token }),
+  setInboundId: (id: number) => ipcRenderer.invoke('set-inbound-id', id),
+  getInboundId: () => ipcRenderer.invoke('get-inbound-id'),
+  finishInbound: (id: number) => ipcRenderer.invoke('finish-inbound', id),
+});
+
 contextBridge.exposeInMainWorld('hostStore', {
   getHosts: () => {
     return ipcRenderer.invoke('get-hosts');

@@ -13,7 +13,7 @@ export default function BottomSideControl() {
   );
 
   return (
-    <div className="mt-4 border-t border-gray-200">
+    <div className="mt-4 border-t h-[90%] border-gray-200">
       <div className="bottom-controls pt-4 flex flex-col items-center justify-between mb-10">
         {isConnected ? (
           <button

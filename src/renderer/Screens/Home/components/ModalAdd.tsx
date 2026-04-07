@@ -1,5 +1,5 @@
-import { Plus, Type, X } from 'lucide-react';
-import React, { useState } from 'react';
+import { Plus, X } from 'lucide-react';
+import React, { useRef, useState } from 'react';
 import './ModalAdd.css'; // import stylesheet
 import useTcpStore from '../../../useTcpStore';
 import { useTranslation } from 'react-i18next';
@@ -14,36 +14,32 @@ export default function ModalAdd({
   const { t } = useTranslation();
   const { addContend } = useTcpStore();
   const [itemText, setItemText] = useState('');
-  const [inc, setInc] = useState<number | ''>(1);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const closeModal = () => {
-    // toggleAddModal();
     setOpenModal(false);
     setItemText('');
   };
 
   const handleAdd = () => {
-    if (itemText.trim() && typeof inc === 'number') {
-      addContend(itemText.trim(), inc);
-      closeModal();
+    if (itemText.trim()) {
+      addContend(itemText.trim(), 1);
+      setItemText('');
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
     }
-  };
-
-  const handleCancel = () => {
-    closeModal();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      // handleAdd();
+      handleAdd();
     } else if (e.key === 'Escape') {
-      handleCancel();
+      closeModal();
     }
   };
 
-  if (!modal) {
-    return;
-  }
+  if (!modal) return null;
 
   return (
     <div className="modal-overlay">
@@ -61,6 +57,7 @@ export default function ModalAdd({
           <div style={{ width: '100%' }}>
             <label htmlFor="item-input">{t('home.modalAdd.label')}</label>
             <input
+              ref={inputRef}
               id="item-input"
               style={{ width: '95%' }}
               type="text"
@@ -71,89 +68,11 @@ export default function ModalAdd({
               autoFocus
             />
           </div>
-          <div>
-            <label htmlFor="item-input">.</label>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: '5px',
-                justifyContent: 'end',
-              }}
-            >
-              <button
-                style={{
-                  paddingInline: '20px',
-                  backgroundColor: '#aaaaaa',
-                  borderRadius: '5px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
-                onClick={() => {
-                  if (inc == '') {
-                    setInc(1);
-                  } else {
-                    setInc(inc + 1);
-                  }
-                }}
-              >
-                +
-              </button>
-              <input
-                style={{ width: '30%' }}
-                id="item-input"
-                type="text"
-                value={inc}
-                onChange={(e) => {
-                  const value = e.target.value;
-
-                  if (value === '') {
-                    setInc('');
-                    return;
-                  }
-
-                  const num = Number(value);
-
-                  if (isNaN(num)) return;
-
-                  if (num <= 0) {
-                    setInc(1);
-                  } else {
-                    setInc(num);
-                  }
-                }}
-                onBlur={(e) => {
-                  if (e.target.value === '') setInc(1);
-                }}
-                onKeyDown={handleKeyPress}
-              />
-              <button
-                onClick={() => {
-                  if (inc === '') {
-                    setInc(1);
-                  } else {
-                    if (inc > 1) {
-                      setInc(inc - 1);
-                    }
-                  }
-                }}
-                style={{
-                  paddingInline: '20px',
-                  backgroundColor: '#aaaaaa',
-                  borderRadius: '5px',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
-              >
-                -
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Buttons */}
         <div className="modal-actions">
-          <button onClick={handleCancel} className="cancel-btn">
+          <button onClick={closeModal} className="cancel-btn">
             {t('home.modalAdd.cancelButton')}
           </button>
           <button

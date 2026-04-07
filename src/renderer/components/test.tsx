@@ -36,6 +36,7 @@ const ConnectionManagerView: React.FC = () => {
   } = useTcpStore();
   const { t, i18n } = useTranslation();
 
+  console.log('Connections:', connections);
   const [newConnection, setNewConnection] = useState<NewConnectionForm>({
     name: '',
     host: '',
@@ -131,6 +132,18 @@ const ConnectionManagerView: React.FC = () => {
     await window.ftpAPI.resetFtpConfig();
   };
 
+    const [inactivityMinutes, setInactivityMinutes] = useState<string>(() => {
+      return localStorage.getItem('inactivityMinutes') ?? '60';
+    });
+
+    const handleInactivityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.value.replace(/\D/g, '');
+      setInactivityMinutes(val);
+      if (val && parseInt(val, 10) > 0) {
+        localStorage.setItem('inactivityMinutes', val);
+      }
+    };
+
   useEffect(() => {
     getRegimeList();
     getFTPConfig();
@@ -142,7 +155,10 @@ const ConnectionManagerView: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+      style={{ paddingTop: 20 }}
+    >
       {/* Add Connection Form */}
       <div className="lg:col-span-1 space-y-6">
         {/* Connection Form */}
@@ -306,6 +322,41 @@ const ConnectionManagerView: React.FC = () => {
               {t('settings.ftp.save')}
             </button>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <label
+            style={{
+              display: 'block',
+              fontWeight: 600,
+              marginBottom: '8px',
+              fontSize: '14px',
+              color: '#374151',
+            }}
+          >
+            {t('settings.inactivityTimeout.label')}
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <input
+              type="number"
+              min={1}
+              value={inactivityMinutes}
+              onChange={handleInactivityChange}
+              style={{
+                width: '80px',
+                padding: '8px',
+                borderRadius: '6px',
+                border: '1px solid #d1d5db',
+                fontSize: '14px',
+              }}
+            />
+            <span style={{ fontSize: '14px', color: '#6b7280' }}>
+              {t('settings.inactivityTimeout.unit')}
+            </span>
+          </div>
+          <p style={{ marginTop: '6px', fontSize: '12px', color: '#9ca3af' }}>
+            {t('settings.inactivityTimeout.hint')}
+          </p>
         </div>
         <div className="bg-white rounded-lg shadow-sm p-6">
           {/* Regime Management */}

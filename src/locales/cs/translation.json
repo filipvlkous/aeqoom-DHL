@@ -8,6 +8,11 @@
   },
   "settings": {
     "ftpTitleSettings": "Nastavení FTP",
+    "inactivityTimeout": {
+      "label": "Automatické odhlášení po neaktivitě",
+      "unit": "minut",
+      "hint": "Aplikace se automaticky odhlásí po tomto časovém období neaktivity."
+    },
     "ftp": {
       "host": "Adresa serveru",
       "port": "Port",
@@ -48,8 +53,8 @@
   },
   "home": {
     "messageLog": {
-      "ok": "nevpořádku",
-      "notOk": "V pořádku",
+      "ok": "V pořádku",
+      "notOk": "Chyba",
       "received": "Přijato",
       "title": "Historie",
       "time": "Čas",
@@ -88,12 +93,34 @@
       "send": "Odeslat data",
       "lastPhoto": "Na poslední fotografii",
       "takePhoto": "Pořídit fotografii",
-      "loading": "Načítání..."
+      "loading": "Načítání...",
+      "successTitle": "Data úspěšně odeslána!",
+      "successSubtitle": "Data byla úspěšně odeslána a zaznamenána."
     },
     "bottomPanel": {
       "connected": "Připojit se",
       "disconnected": "Odpojit se",
       "settings": "Nastavení"
+    },
+    "createBox": {
+      "title": "Vytvořit box",
+      "yes": "Ano",
+      "no": "Ne"
+    },
+    "finishInbound": {
+      "button": "Ukončit příjemku",
+      "loading": "Ukončuji příjemku...",
+      "success": "Příjemka ukončena",
+      "error": "Chyba při ukončení příjemky"
+    },
+    "successModal": {
+      "title": "Data odeslána",
+      "message": "Data byla úspěšně odeslána.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Chyba při odesílání dat",
+      "close": "Zavřít"
     }
   },
   "analytics": {
@@ -114,5 +141,28 @@
     "scanned": "Naskenované boxy",
     "duration": "Doba trvání (ms)",
     "count": "Počet"
+  },
+  "logout": {
+    "button": "Odhlásit se"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Naskenujte QR kód pro přihlášení",
+    "placeholder": "Naskenujte QR kód...",
+    "submit": "Přihlásit se",
+    "loading": "Přihlašování...",
+    "errorInvalidQr": "Neplatný formát QR kódu.",
+    "errorDefault": "Přihlášení se nezdařilo"
+  },
+  "inboundSelect": {
+    "title": "Vybrat příjemku",
+    "subtitle": "Zadejte ID příjemky nebo naskenujte QR kód (typ 31)",
+    "placeholder": "ID příjemky nebo naskenujte QR...",
+    "submit": "Zahájit příjemku",
+    "loading": "Zahajuji...",
+    "errorInvalidQrType": "Neplatný typ QR.",
+    "errorInvalidQrId": "Neplatné ID příjemky v QR kódu.",
+    "errorInvalidId": "Zadejte platné ID příjemky nebo naskenujte QR kód.",
+    "errorDefault": "Nepodařilo se zahájit příjemku"
   }
 }
