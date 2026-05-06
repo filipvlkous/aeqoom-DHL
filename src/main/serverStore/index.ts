@@ -1,11 +1,9 @@
 export * from './types';
 export * from './config';
-export { hostService } from './services/hostService';
-export { regimeService } from './services/regimeService';
-export { ftpConfigService } from './services/ftpService';
 export { storeService } from './services/storeService';
+export { databaseService } from './services/databaseService';
 
-import { FtpConfig, HostEntry } from './types';
+import { HostEntry } from './types';
 
 // // utils/config.utils.ts (bonus utilities)
 
@@ -27,21 +25,5 @@ export const configUtils = {
     }
 
     return errors;
-  },
-
-  sanitizeFtpConfig(config: Partial<FtpConfig>): Partial<FtpConfig> {
-    const sanitized = { ...config };
-
-    if (sanitized.username) {
-      sanitized.username = sanitized.username.trim();
-    }
-    if (sanitized.host) {
-      sanitized.host = sanitized.host.trim();
-    }
-    if (sanitized.rootPath) {
-      sanitized.rootPath = sanitized.rootPath.trim();
-    }
-
-    return sanitized;
   },
 };

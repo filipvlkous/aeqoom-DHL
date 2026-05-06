@@ -1,0 +1,117 @@
+{
+  "welcome": "Vitajte",
+  "dashboard": "Štatistiky",
+  "history": "História",
+  "buttons": {
+    "back": "Späť",
+    "add": "Pridať"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Pridať novú kameru",
+      "name": "Názov kamery",
+      "host": "IP kamery",
+      "port": "Port kamery",
+      "add": "Pridať kameru"
+    },
+    "connectionList": {
+      "title": "Zoznam kamier",
+      "noConnections": "Žiadna dostupná kamera",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Pripojiť",
+      "disconnect": "Odpojiť",
+      "remove": "Odstrániť",
+      "removeAll": "Odstrániť všetky kamery",
+      "noCamera1": "Žiadna kamera nie je k dispozícii.",
+      "noCamera2": "Pridajte novú kameru a následne kliknite pripojiť sa.",
+      "connecting": "Pripájanie...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Zadajte heslo",
+        "passwordPlaceholder": "Zadajte heslo...",
+        "errorValidation": "Neplatné heslo",
+        "cancel": "Zrušiť",
+        "confirm": "Potvrdiť"
+      }
+    },
+    "messageLog": {
+      "ok": "V poriadku",
+      "notOk": "Chyba",
+      "received": "Prijaté",
+      "title": "História",
+      "time": "Čas",
+      "type": "Typ",
+      "connect": "Výsledok",
+      "job": "Úloha",
+      "action": "Akcia",
+      "noMessages1": "Zatiaľ neboli prijaté žiadne správy.",
+      "noMessages2": "Akonáhle budú správy prijaté, zobrazia sa tu.",
+      "item": "Položka",
+      "items": "Položky"
+    },
+    "statusHeader": {
+      "cameraConnected": "Status kamery",
+      "imageNumber": "Počet obrázkov"
+    },
+    "imagePanel": {
+      "noImage1": "Žiadny obrázok zatiaľ nebol prijatý",
+      "noImage2": "Pripojte sa ku kamere a vyberte úlohu následne vytvorte snímku.",
+      "connectCamera": "Pripojte sa",
+      "send": "Odoslať dáta",
+      "lastPhoto": "Na poslednej fotografii",
+      "takePhoto": "Skenovať paletu",
+      "loading": "Načítavanie...",
+      "successTitle": "Dáta úspešne odoslané!",
+      "successSubtitle": "Dáta boli úspešne odoslané a zaznamenané."
+    },
+    "bottomPanel": {
+      "connected": "Pripojiť sa",
+      "disconnected": "Odpojiť sa",
+      "settings": "Nastavenia"
+    },
+    "successModal": {
+      "title": "Dáta odoslané",
+      "message": "Dáta boli úspešne odoslané.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Chyba pri odosielaní dát",
+      "close": "Zavrieť"
+    },
+    "processPage": {
+      "height": "Výška",
+      "scanning": "Skenovanie..."
+    },
+    "errorMessages": {
+      "internalError": "Interná chyba - volajte support",
+      "WMS-01": "Používateľ {userId} nebol nájdený v systéme.",
+      "WMS-02": "Paleta {palletId} nebola nájdená v BlueYonder. Overte prosím, že sú odosielané správne dáta a že paleta v systéme existuje.",
+      "WMS-03": "EAN {ean} nebol nájdený v systéme.",
+      "WMS-04": "Bolo zistené duplicitné sériové číslo. Sériové číslo {serialNumber} už v systéme existuje.",
+      "WMS-05": "Paleta {palletId} už má v systéme záznam o skenovaní.",
+      "WMS-06": "Pri spracovaní požiadavky došlo k chybe databázy.",
+      "ERR-01": "Nenájdené žiadne LPN.",
+      "ERR-02": "Rozpoznaných viac LPN.",
+      "ERR-03": "Nenájdený žiadny EAN.",
+      "ERR-04": "Rozpoznaný chybný EAN.",
+      "ERR-05": "Nájdené {{foundSN}} z {{expectedSN}} SN.",
+      "ERR-06": "Výška {{height}} cm je mimo tolerancie."
+    }
+  },
+  "logout": {
+    "button": "Odhlásiť sa"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Pre prihlásenie naskenujte QR kód alebo zadajte svoje User-ID do poľa nižšie.",
+    "placeholder": "Naskenujte QR kód...",
+    "submit": "Prihlásiť sa",
+    "loading": "Prihlasovanie...",
+    "errorInvalidQr": "Neplatný formát QR kódu.",
+    "errorDefault": "Prihlásenie sa nepodarilo"
+  }
+}

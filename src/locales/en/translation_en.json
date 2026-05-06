@@ -1,0 +1,124 @@
+{
+  "welcome": "Welcome",
+  "dashboard": "Statistics",
+  "history": "History",
+  "buttons": {
+    "back": "Back",
+    "add": "Add"
+  },
+  "settings": {
+    "modal": {
+      "enterPassword": "Enter password",
+      "passwordPlaceholder": "Enter password...",
+      "errorValidation": "Invalid password",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "addConnection": {
+      "title": "Add new camera",
+      "name": "Camera name",
+      "host": "Camera IP",
+      "port": "Camera port",
+      "add": "Add camera"
+    },
+    "connectionList": {
+      "title": "Camera list",
+      "noConnections": "No camera available",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Connect",
+      "disconnect": "Disconnect",
+      "remove": "Remove",
+      "removeAll": "Remove all cameras",
+      "noCamera1": "No camera is available.",
+      "noCamera2": "Add a new camera and then click connect.",
+      "connecting": "Connecting...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Enter password",
+        "passwordPlaceholder": "Enter password...",
+        "errorValidation": "Invalid password",
+        "cancel": "Cancel",
+        "confirm": "Confirm"
+      }
+    },
+    "messageLog": {
+      "ok": "OK",
+      "notOk": "Error",
+      "received": "Received",
+      "title": "History",
+      "time": "Time",
+      "type": "Type",
+      "connect": "Result",
+      "job": "Job",
+      "action": "Action",
+      "noMessages1": "No messages have been received yet.",
+      "noMessages2": "Once messages are received, they will appear here.",
+      "item": "Item",
+      "items": "Items"
+    },
+    "statusHeader": {
+      "cameraConnected": "Camera status",
+      "imageNumber": "Number of images"
+    },
+    "imagePanel": {
+      "noImage1": "No image has been received yet",
+      "noImage2": "Connect to the camera and select a job, then capture an image.",
+      "connectCamera": "Connect",
+      "send": "Send data",
+      "lastPhoto": "On last photo",
+      "takePhoto": "Scan pallet",
+      "loading": "Loading...",
+      "successTitle": "Data sent successfully!",
+      "successSubtitle": "The data has been successfully sent and recorded."
+    },
+    "bottomPanel": {
+      "connected": "Connect",
+      "disconnected": "Disconnect",
+      "settings": "Settings"
+    },
+    "successModal": {
+      "title": "Data sent",
+      "message": "The data has been successfully sent.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Error sending data",
+      "close": "Close"
+    },
+    "processPage": {
+      "height": "Height",
+      "scanning": "Scanning..."
+    },
+    "errorMessages": {
+      "internalError": "Internal error - call support",
+      "WMS-01": "User {userId} was not found in the system.",
+      "WMS-02": "Pallet {palletId} was not found in BlueYonder. Please verify that the correct data is being sent and that the pallet exists in the system.",
+      "WMS-03": "EAN {ean} was not found in the system.",
+      "WMS-04": "Duplicate serial number detected. Serial number {serialNumber} already exists in the system.",
+      "WMS-05": "Pallet {palletId} already has a scan record in the system.",
+      "WMS-06": "A database error occurred while processing the request.",
+      "ERR-01": "No LPN found.",
+      "ERR-02": "Multiple LPNs detected.",
+      "ERR-03": "No EAN found.",
+      "ERR-04": "Invalid EAN detected.",
+      "ERR-05": "Found {{foundSN}} of {{expectedSN}} SN.",
+      "ERR-06": "Height {{height}} cm is out of tolerance."
+    }
+  },
+  "logout": {
+    "button": "Log out"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "To log in, scan the QR code or enter your User-ID in the field below.",
+    "placeholder": "Scan QR code...",
+    "submit": "Log in",
+    "loading": "Logging in...",
+    "errorInvalidQr": "Invalid QR code format.",
+    "errorDefault": "Login failed"
+  }
+}

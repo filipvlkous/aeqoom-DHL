@@ -4,11 +4,10 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './Screens/Home/home';
 import Settings from './Screens/settings/settings';
 import useTcpStore, { Message } from './useTcpStore';
-import { FtpConfig } from '../main/serverStore/types';
 import './App.css';
-import Dashboard from './Screens/Dashboard/Dashboard';
 import Login from './Screens/Login/Login';
 import { toast } from 'react-toastify';
+import i18n from '../i18n';
 declare global {
   interface Window {
     authAPI: {
@@ -20,25 +19,10 @@ declare global {
       setToken: (token: string) => Promise<void>;
       clearToken: () => Promise<void>;
       logout: () => Promise<{ success: boolean; error: string | null }>;
+      setAppMode: (mode: string) => Promise<void>;
+      getAppMode: () => Promise<string>;
     };
-    inboundAPI: {
-      startInbound: (inboundId: number, token: string) => Promise<void>;
-      setInboundId: (id: number) => Promise<void>;
-      getInboundId: () => Promise<number>;
-      finishInbound: (
-        id: number,
-      ) => Promise<{ success: boolean; error: string | null }>;
-    };
-    ftpAPI: {
-      startFtp: () => Promise<boolean>;
-      stopFtp: () => Promise<boolean>;
-      isFtpRunning: () => Promise<boolean>;
-      getFtpConfig: () => Promise<FtpConfig>;
-      setFtpConfig: (config: FtpConfig) => Promise<void>;
-      resetFtpConfig: () => Promise<void>;
-      selectFolder: () => Promise<any>;
-      onFtpConnected: (value: any) => Promise<void>;
-    };
+
     tcpIp: {
       connect: (
         host: string,
@@ -50,39 +34,32 @@ declare global {
         callback: (connectionId: string, data: string) => void,
       ) => () => void;
     };
-    imageAPI: {
-      loadImage: (
-        imageName: string,
-        tempStoreMainImg: boolean,
-        data?: any,
-      ) => Promise<string>;
-    };
     APIs: {
       sendDataToApis: (message: Message) => Promise<{
         alensa: { success: boolean; error: null | string };
         supabase: { success: boolean; error: null | string };
       }>;
     };
+    dataStorage: {};
   }
 }
 
 function App() {
   //:TODO: remove test default value
-  const [authToken, setAuthToken] = useState<string>('');
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(true);
   const store = useTcpStore();
-
-  const inactivityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleLogout = useCallback(async () => {
     try {
-      const result = await window.authAPI.logout();
-      if (!result.success) {
-        toast.error(result.error || 'Logout failed', { autoClose: false });
-      } else {
-        toast.success('Logged out successfully');
-      }
+      // const result = await window.authAPI.logout();
+      // if (!result.success) {
+      //   toast.error(result.error || 'Logout failed', { autoClose: false });
+      // } else {
+      //   toast.success('Logged out successfully');
+      // }
       localStorage.removeItem('authToken');
+      await window.authAPI.setAppMode('');
       setAuthToken('');
     } catch (error: any) {
       toast.error(error?.message || 'An error occurred during logout', {
@@ -91,40 +68,12 @@ function App() {
     }
   }, []);
 
-  // Inactivity auto-logout
-  useEffect(() => {
-    if (!authToken) return;
-
-    const getTimeoutMs = () => {
-      const stored = localStorage.getItem('inactivityMinutes');
-      const minutes = stored ? parseInt(stored, 10) : 60;
-      return (isNaN(minutes) || minutes <= 0 ? 60 : minutes) * 60 * 1000;
-    };
-
-    const resetTimer = () => {
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-      inactivityTimerRef.current = setTimeout(handleLogout, getTimeoutMs());
-    };
-
-    const events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'wheel'];
-    events.forEach((e) =>
-      window.addEventListener(e, resetTimer, { passive: true }),
-    );
-    resetTimer();
-
-    return () => {
-      events.forEach((e) => window.removeEventListener(e, resetTimer));
-      if (inactivityTimerRef.current) clearTimeout(inactivityTimerRef.current);
-    };
-  }, [authToken, handleLogout]);
-
   const initializeConnections = useTcpStore(
     (state) => state.initializeConnections,
   );
   const initializeDataListener = useTcpStore(
     (state) => state.initializeDataListener,
   );
-  const initFtpListener = useTcpStore((state) => state.initFtpListener);
   const setBridgeReady = useTcpStore((state) => state.setBridgeReady);
 
   // Persist authToken to localStorage whenever it changes
@@ -162,34 +111,13 @@ function App() {
     if (!authToken) return;
 
     if (window.tcpIp) {
+      console.log('TCP bridge is ready');
       setBridgeReady(true);
       initializeConnections();
-      initFtpListener();
       const unsubscribe = initializeDataListener();
-      if (store.activeConnection) {
-        store.connectToServer(store.activeConnection);
-      }
+
       return unsubscribe;
     }
-  }, [authToken]);
-
-  useEffect(() => {
-    if (!authToken) return;
-
-    const startFtpOnLoad = async () => {
-      try {
-        const result = await window.ftpAPI.startFtp();
-        console.log('FTP Server auto-started:', result);
-      } catch (error) {
-        console.error('Failed to auto-start FTP server:', error);
-      }
-    };
-
-    if (store.activeConnection) {
-      store.connectToServer(store.activeConnection);
-    }
-
-    startFtpOnLoad();
   }, [authToken]);
 
   if (!authChecked) {
@@ -214,7 +142,6 @@ function App() {
         element={<Home authToken={authToken} onLogout={handleLogout} />}
       />
       <Route path="/settings" element={<Settings />} />
-      <Route path="/dashboard" element={<Dashboard />} />
     </Routes>
   );
 }

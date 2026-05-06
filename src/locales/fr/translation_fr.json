@@ -1,0 +1,117 @@
+{
+  "welcome": "Bienvenue",
+  "dashboard": "Statistiques",
+  "history": "Historique",
+  "buttons": {
+    "back": "Retour",
+    "add": "Ajouter"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Ajouter une nouvelle caméra",
+      "name": "Nom de la caméra",
+      "host": "IP de la caméra",
+      "port": "Port de la caméra",
+      "add": "Ajouter la caméra"
+    },
+    "connectionList": {
+      "title": "Liste des caméras",
+      "noConnections": "Aucune caméra disponible",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "connect": "Connecter",
+      "disconnect": "Déconnecter",
+      "remove": "Supprimer",
+      "removeAll": "Supprimer toutes les caméras",
+      "noCamera1": "Aucune caméra n'est disponible.",
+      "noCamera2": "Ajoutez une nouvelle caméra puis cliquez sur connecter.",
+      "connecting": "Connexion...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Saisir le mot de passe",
+        "passwordPlaceholder": "Saisir le mot de passe...",
+        "errorValidation": "Mot de passe invalide",
+        "cancel": "Annuler",
+        "confirm": "Confirmer"
+      }
+    },
+    "messageLog": {
+      "ok": "OK",
+      "notOk": "Erreur",
+      "received": "Reçu",
+      "title": "Historique",
+      "time": "Heure",
+      "type": "Type",
+      "connect": "Résultat",
+      "job": "Tâche",
+      "action": "Action",
+      "noMessages1": "Aucun message n'a encore été reçu.",
+      "noMessages2": "Dès que des messages seront reçus, ils apparaîtront ici.",
+      "item": "Article",
+      "items": "Articles"
+    },
+    "statusHeader": {
+      "cameraConnected": "Statut de la caméra",
+      "imageNumber": "Nombre d'images"
+    },
+    "imagePanel": {
+      "noImage1": "Aucune image n'a encore été reçue",
+      "noImage2": "Connectez-vous à la caméra et sélectionnez une tâche, puis prenez une photo.",
+      "connectCamera": "Se connecter",
+      "send": "Envoyer les données",
+      "lastPhoto": "Sur la dernière photo",
+      "takePhoto": "Scanner la palette",
+      "loading": "Chargement...",
+      "successTitle": "Données envoyées avec succès !",
+      "successSubtitle": "Les données ont été envoyées et enregistrées avec succès."
+    },
+    "bottomPanel": {
+      "connected": "Se connecter",
+      "disconnected": "Se déconnecter",
+      "settings": "Paramètres"
+    },
+    "successModal": {
+      "title": "Données envoyées",
+      "message": "Les données ont été envoyées avec succès.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Erreur lors de l'envoi des données",
+      "close": "Fermer"
+    },
+    "processPage": {
+      "height": "Hauteur",
+      "scanning": "Numérisation..."
+    },
+    "errorMessages": {
+      "internalError": "Erreur interne - appelez le support",
+      "WMS-01": "L'utilisateur {userId} n'a pas été trouvé dans le système.",
+      "WMS-02": "La palette {palletId} n'a pas été trouvée dans BlueYonder. Veuillez vérifier que les données correctes sont envoyées et que la palette existe dans le système.",
+      "WMS-03": "L'EAN {ean} n'a pas été trouvé dans le système.",
+      "WMS-04": "Numéro de série en double détecté. Le numéro de série {serialNumber} existe déjà dans le système.",
+      "WMS-05": "La palette {palletId} a déjà un enregistrement de scan dans le système.",
+      "WMS-06": "Une erreur de base de données s'est produite lors du traitement de la requête.",
+      "ERR-01": "Aucun LPN trouvé.",
+      "ERR-02": "Plusieurs LPN détectés.",
+      "ERR-03": "Aucun EAN trouvé.",
+      "ERR-04": "EAN défectueux détecté.",
+      "ERR-05": "Trouvé {{foundSN}} sur {{expectedSN}} SN.",
+      "ERR-06": "La hauteur {{height}} cm est hors tolérance."
+    }
+  },
+  "logout": {
+    "button": "Se déconnecter"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Pour vous connecter, scannez le code QR ou saisissez votre User-ID dans le champ ci-dessous.",
+    "placeholder": "Scanner le code QR...",
+    "submit": "Se connecter",
+    "loading": "Connexion...",
+    "errorInvalidQr": "Format de code QR invalide.",
+    "errorDefault": "Échec de la connexion"
+  }
+}

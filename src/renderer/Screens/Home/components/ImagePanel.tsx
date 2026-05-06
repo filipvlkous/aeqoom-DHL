@@ -1,37 +1,165 @@
-import React from 'react';
-import { Camera, Send, ThumbsUp, Loader2 } from 'lucide-react';
-import useTcpStore, { Message } from '../../../useTcpStore';
+import { Camera, Loader2, AlertTriangle } from 'lucide-react';
+import useTcpStore from '../../../useTcpStore';
 import { useTranslation } from 'react-i18next';
-import jpg from '../../../../../assets/DM282-RomeoDesk-382-72567170.jpg';
-import svg from '../../../../../assets/DM282-RomeoDesk-382-72567170.svg';
+import { useEffect, useRef, useState } from 'react';
+import { ErrorCode } from '../../../../main/utils/barcodeValidator';
+
 type ImagePanelProps = {
   handlePhotoCapture: () => void;
-  handleSendData: () => void;
-  toLastPhoto: () => void;
-  history: boolean;
   loading: boolean;
-  lastPhoto: Message;
-  showSuccess: boolean;
 };
+
+function countOccurrences(arr: string[]): Record<string, number> {
+  return arr.reduce<Record<string, number>>((acc, v) => {
+    acc[v] = (acc[v] ?? 0) + 1;
+    return acc;
+  }, {});
+}
+
+function ErrorDetails({
+  error,
+  meta,
+  serialNumbers,
+}: {
+  error: ErrorCode;
+  meta?: Record<string, unknown>;
+  serialNumbers?: string[];
+}) {
+  const { scanSetup } = useTcpStore();
+  const { t } = useTranslation();
+  const listStyle: React.CSSProperties = {
+    margin: '8px 0 0',
+    padding: 0,
+    listStyle: 'none',
+    fontSize: 17,
+    color: 'yellow',
+    textAlign: 'center' as const,
+  };
+
+  switch (error) {
+    case 'ERR-01':
+      return (
+        <p style={{ color: 'yellow' }}>{t('home.errorMessages.ERR-01')}</p>
+      );
+
+    case 'ERR-02': {
+      const counts = countOccurrences((meta?.lpns as string[]) ?? []);
+      return (
+        <>
+          <p style={{ color: 'yellow' }}>{t('home.errorMessages.ERR-02')}</p>
+          <ul style={listStyle}>
+            {Object.entries(counts).map(([lpn, n]) => (
+              <li key={lpn}>
+                {lpn} ({n}×)
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+
+    case 'ERR-03':
+      return (
+        <p style={{ color: 'yellow' }}>{t('home.errorMessages.ERR-03')}</p>
+      );
+
+    case 'ERR-04': {
+      const counts = countOccurrences((meta?.eans as string[]) ?? []);
+      const max = Math.max(...Object.values(counts));
+      return (
+        <>
+          <p style={{ color: 'yellow' }}>{t('home.errorMessages.ERR-04')}</p>
+          <ul style={listStyle}>
+            {Object.entries(counts).map(([ean, n]) => (
+              <li key={ean}>
+                {ean}{' '}
+                {n < max ? (
+                  <strong style={{ color: 'yellow' }}>(!)</strong>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      );
+    }
+
+    case 'ERR-05': {
+      const sns = [...(serialNumbers ?? [])].sort();
+      const expectedSN = scanSetup.snCount;
+      const foundSN = sns.length;
+
+      return (
+        <>
+          <p style={{ color: 'yellow' }}>
+            {t('home.errorMessages.ERR-05', {
+              expectedSN,
+              foundSN,
+            })}
+            <br />
+          </p>
+          {sns.length > 0 && (
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 17,
+                color: 'yellow',
+              }}
+            >
+              {sns.join(', ')}
+            </div>
+          )}
+        </>
+      );
+    }
+
+    case 'ERR-06': {
+      const height = meta?.height as number;
+      return (
+        <p style={{ color: 'yellow' }}>
+          {t('home.errorMessages.ERR-06', { height })}
+        </p>
+      );
+    }
+
+    default:
+      return null;
+  }
+}
 
 export default function ImagePanel({
   handlePhotoCapture,
-  handleSendData,
-  toLastPhoto,
-  history,
   loading,
-  lastPhoto,
-  showSuccess,
 }: ImagePanelProps) {
   const store = useTcpStore();
   const { t } = useTranslation();
+  const [working, setWorking] = useState(false);
+  const lastMessageIdRef = useRef<string | undefined>(undefined);
+
+  const lastMessage = store.messages[store.messages.length - 1];
+  const validation = lastMessage?.validation;
+  const hasError = validation && !validation.ok;
   const isConnected = store.connections.some((c) => c.status === 'connected');
 
+  useEffect(() => {
+    if (lastMessage?.id && lastMessage.id !== lastMessageIdRef.current) {
+      lastMessageIdRef.current = lastMessage.id;
+      setWorking(false);
+    }
+  }, [lastMessage?.id]);
+
+  const handleCapture = () => {
+    setWorking(true);
+    handlePhotoCapture();
+  };
+
   return (
-    <div className="flex flex-1 gap-4 pt-0 min-h-0">
+    <div
+      className="flex flex-1 gap-4 pt-0 min-h-0"
+      style={{ position: 'relative' }}
+    >
       <div
         style={{ justifyContent: 'center', alignItems: 'center' }}
-        className="bg-white rounded-xl shadow-lg flex flex-col h-full min-h-0 w-full"
+        className="bg-white rounded-xl shadow-lg flex flex-col h-full min-h-0 w-full overflow-hidden"
       >
         <div
           style={{
@@ -43,132 +171,154 @@ export default function ImagePanel({
             width: '100%',
           }}
         >
-          {showSuccess ? (
-            <div
-              style={{
-                width: '97%',
-                aspectRatio: '2660 / 1516',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '1.5rem',
-              }}
-            >
-              <div
-                style={{
-                  background:
-                    'linear-gradient(135deg, #bbf7d0 0%, #dcfce7 100%)',
-                  borderRadius: '50%',
-                  width: '10rem',
-                  height: '10rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 8px 32px rgba(34,197,94,0.25)',
-                }}
-              >
-                <ThumbsUp size={72} color="#16a34a" strokeWidth={1.5} />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <p
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: '#15803d',
-                    margin: 0,
-                  }}
-                >
-                  {t('home.imagePanel.successTitle')}
-                </p>
-                <p
-                  style={{
-                    fontSize: '1rem',
-                    color: '#4ade80',
-                    marginTop: '0.5rem',
-                  }}
-                >
-                  {t('home.imagePanel.successSubtitle')}
-                </p>
-              </div>
-            </div>
-          ) : store.image && store.svgImage ? (
-            <div
-              style={{
-                width: '97%',
-                aspectRatio: '2660 / 1516',
-                position: 'relative',
-              }}
-            >
-              <img
-                src={store.svgImage}
-                alt="SVG Overlay"
-                style={{
-                  transform: 'scaleY(-1) scaleX(-1)',
-                  transformOrigin: 'center center',
-                  zIndex: 10,
-                  position: 'absolute',
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  borderRadius: '0.5rem',
-                }}
-              />
-              <img
-                src={store.image}
-                alt="Captured"
-                style={{
-                  transform: 'scaleY(-1) scaleX(-1)',
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  borderRadius: '0.5rem',
-                  display: 'block',
-                }}
-              />
-            </div>
-          ) : (
+          {working ? (
             <div
               style={{
                 width: '100%',
-                aspectRatio: '2660 / 1516',
+                height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                textAlign: 'center',
-                color: '#9CA3AF',
+                backgroundColor: '#f97316',
+                gap: 16,
               }}
             >
-              <div
+              <Loader2 size={64} color="#fff" className="animate-spin" />
+              <span
                 style={{
-                  margin: '0 auto 1rem',
-                  opacity: 0.3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  fontSize: 36,
+                  fontWeight: 700,
+                  color: '#fff',
+                  letterSpacing: 4,
                 }}
               >
-                <Camera size={64} />
-              </div>
-              <p style={{ fontSize: '1.125rem', fontWeight: 500 }}>
-                {t('home.imagePanel.noImage1')}
-              </p>
-              <p style={{ fontSize: '0.875rem', marginTop: '0.5rem' }}>
-                {t('home.imagePanel.noImage2')}
-              </p>
+                Working...
+              </span>
             </div>
-          )}
+          ) : hasError && validation && !validation.ok ? (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#ef4444',
+                gap: 12,
+                padding: '24px',
+                overflowY: 'auto',
+              }}
+            >
+              <AlertTriangle size={56} color="yellow" />
+              <span
+                style={{
+                  fontSize: 48,
+                  fontWeight: 700,
+                  color: 'yellow',
+                  letterSpacing: 4,
+                }}
+              >
+                {validation.error}
+              </span>
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 500,
+                  color: 'yellow',
+                  textAlign: 'center',
+                  lineHeight: 1.5,
+                }}
+              >
+                <ErrorDetails
+                  error={validation.error}
+                  meta={validation.meta}
+                  serialNumbers={lastMessage?.serialNumbers}
+                />
+              </div>
+            </div>
+          ) : validation?.ok ? (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: '#4caf50',
+                padding: '32px 40px',
+                overflowY: 'auto',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 52,
+                  fontWeight: 700,
+                  color: '#fff',
+                  alignSelf: 'center',
+                  marginBottom: 32,
+                }}
+              >
+                OK
+              </span>
+              <table style={{ borderCollapse: 'collapse' }}>
+                <tbody>
+                  {[
+                    { label: 'LPN:', value: lastMessage?.lpn ?? '—' },
+                    { label: 'EAN:', value: lastMessage?.ean ?? '—' },
+                    {
+                      label: 'SN:',
+                      value: lastMessage?.serialNumbers?.length ?? 0,
+                    },
+                    {
+                      label: 'Výška:',
+                      value:
+                        store.scanSetup.currentHeightCm !== null
+                          ? `${store.scanSetup.currentHeightCm} cm`
+                          : '—',
+                    },
+                  ].map(({ label, value }) => (
+                    <tr key={label}>
+                      <td
+                        style={{
+                          color: '#fff',
+                          fontWeight: 600,
+                          fontSize: 22,
+                          paddingRight: 24,
+                          paddingBottom: 12,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {label}
+                      </td>
+                      <td
+                        style={{
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: 22,
+                          paddingBottom: 12,
+                        }}
+                      >
+                        {String(value)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </div>
 
         <div
           className="button-container"
           style={{ marginTop: 'auto', marginBottom: '1rem' }}
         >
-          {isConnected && store.regime !== null ? (
+          {isConnected ? (
             <button
               disabled={store.cameraBtnDisabled || loading}
-              onClick={handlePhotoCapture}
+              onClick={handleCapture}
               className="photo-button"
             >
               {store.cameraBtnDisabled || loading ? (
@@ -180,26 +330,32 @@ export default function ImagePanel({
                 ? t('home.imagePanel.loading')
                 : t('home.imagePanel.takePhoto')}
             </button>
-          ) : (
-            <button className="disabled-button" disabled>
-              {t('home.imagePanel.connectCamera')}
-            </button>
-          )}
-          {store.image &&
-            history &&
-            lastPhoto.type !== 'OK' &&
-            lastPhoto.type !== 'NOK' && (
-              <button className="send-button" onClick={handleSendData}>
-                <Send size={20} />
-                {t('home.imagePanel.send')}
-              </button>
-            )}
-          {!history && (
-            <button onClick={toLastPhoto} className="photo-button">
-              {t('home.imagePanel.lastPhoto')}
-            </button>
-          )}
+          ) : null}
         </div>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: 20,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 9999,
+          pointerEvents: 'none',
+          backgroundColor: 'red',
+        }}
+      >
+        <p
+          style={{
+            color: 'black',
+            fontSize: '3rem',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            margin: 0,
+            padding: '8px 24px',
+          }}
+        >
+          DEMO
+        </p>
       </div>
     </div>
   );

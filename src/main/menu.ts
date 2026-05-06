@@ -54,15 +54,15 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'The Table',
+      label: 'DHL Project',
       submenu: [
         {
-          label: 'About The Table',
+          label: 'About DHL Project',
           selector: 'orderFrontStandardAboutPanel:',
         },
         { type: 'separator' },
         {
-          label: 'Hide The Table',
+          label: 'Hide DHL Project',
           accelerator: 'Command+H',
           selector: 'hide:',
         },

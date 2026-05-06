@@ -1,185 +1,206 @@
 import log from 'electron-log';
 import { storeService } from '../serverStore';
+import { databaseService } from '../serverStore/services/databaseService';
 
-const API_URL =
-  'https://one.alensis.cz/api2/rest/inbounds/processItemsFromScanningStation';
+// ── helpers ──────────────────────────────────────────────────────────────────
 
-export const processBarcodesAlensa = async (
-  barcodes: string[],
-  createBox: boolean,
-) => {
-  log.info('[processBarcodesAlensa] Called with:', { count: barcodes?.length });
+async function getSetupConfig() {
+  const setup = await databaseService.getSetup();
+  if (!setup)
+    throw new Error(
+      'Setup not configured. Please fill in API Manager settings.',
+    );
 
+  const isProd = (setup.run_mode ?? 0) === 1;
+  const host = isProd ? setup.host_port_prod : setup.host_port_test;
+  const password = isProd
+    ? setup.wms_api_password_prod
+    : setup.wms_api_password_test;
+
+  if (!host)
+    throw new Error(`host_port_${isProd ? 'prod' : 'test'} is not configured.`);
+
+  return {
+    host: host.replace(/\/$/, ''),
+    username: setup.wms_api_username ?? null,
+    password: password ?? null,
+    uri_auth: setup.uri_auth ?? null,
+    uri_user_validation: setup.uri_user_validation ?? null,
+    uri_part_summary: setup.uri_part_summary ?? null,
+    uri_scans: setup.uri_scans ?? null,
+  };
+}
+
+function buildUrl(host: string, uri: string | null): string {
+  if (!uri) throw new Error('URI not configured.');
+  return `${host}${uri}`;
+}
+
+export const wmsLogin = async (): Promise<{
+  success: boolean;
+  token: string | null;
+  error: string | null;
+}> => {
+  log.info('[wmsLogin] Called');
   try {
-    if (!Array.isArray(barcodes) || barcodes.length === 0) {
-      log.warn('[processBarcodesAlensa] No barcodes provided');
-      return { success: false, error: 'No barcodes provided' };
-    }
+    const cfg = await getSetupConfig();
+    const url = buildUrl(cfg.host, cfg.uri_auth);
 
-    const authToken = await storeService.get('authToken');
-    const inboundId = await storeService.get('inboundId');
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Idempotency-Key': crypto.randomUUID(),
-    };
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    const res = await fetch(API_URL, {
+    const res = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        barcodes,
-        createBox: createBox,
-        inboundId: inboundId || undefined,
+        username: cfg.username,
+        password: cfg.password,
       }),
     });
-
-    log.info('[processBarcodesAlensa] Response status:', res.status);
-
-    let data: any = null;
-    try {
-      data = await res.json();
-    } catch (jsonErr) {
-      log.warn('[processBarcodesAlensa] No JSON returned from API', {
-        jsonErr,
-      });
-    }
-
+    console.log('[wmsLogin] Response status:', res);
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
-      log.error('[processBarcodesAlensa] ❌ HTTP failed', {
-        status: res.status,
-        barcodes,
-        response: data,
-      });
-
       return {
         success: false,
-        error: data?.error || `HTTP error ${res.status}`,
+        token: null,
+        error: data?.error || `HTTP ${res.status}`,
       };
     }
 
-    if (data?.status !== true) {
-      log.error('[processBarcodesAlensa] ❌ API returned failure status', {
-        barcodes,
-        response: data,
-      });
-
-      return {
-        success: false,
-        error: data?.error || 'Unknown error',
-      };
-    }
-
-    log.info('[processBarcodesAlensa] ✔ Success', {
-      barcodesCount: barcodes.length,
-    });
-    return { success: true, error: null };
+    const token: string = data?.token ?? data?.access_token ?? null;
+    log.info('[wmsLogin] ✔ Success');
+    return { success: true, token, error: null };
   } catch (err: any) {
-    log.error('[processBarcodesAlensa] ❌ Unexpected error', {
-      message: err.message || err,
-      stack: err.stack,
-      barcodes,
-    });
-
+    log.error('[wmsLogin] ❌', err);
     return {
       success: false,
+      token: null,
       error: err.message || 'Network error',
     };
   }
 };
 
-export const finishInboundAlensa = async (
-  inboundId: number,
-): Promise<{ success: boolean; error: string | null }> => {
-  log.info('[finishInboundAlensa] Called with inboundId:', inboundId);
-
+export const wmsValidateUser = async (
+  userId: string,
+): Promise<{
+  success: boolean;
+  data: any;
+  error: string | null;
+}> => {
+  log.info('[wmsValidateUser] userId:', userId);
   try {
-    const authToken = await storeService.get('authToken');
-    console.log(
-      '[finishInboundAlensa] Retrieved authToken:',
-      authToken ? 'Yes' : 'No',
+    const cfg = await getSetupConfig();
+    if (!cfg.uri_user_validation)
+      throw new Error('uri_user_validation not configured.');
+    const url = buildUrl(
+      cfg.host,
+      cfg.uri_user_validation.replace('{userId}', encodeURIComponent(userId)),
     );
-    console.log('[finishInboundAlensa] Inbound ID:', authToken);
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (authToken) {
-      headers['Authorization'] = `Bearer ${authToken}`;
-    }
+    const wmsToken = await storeService.get('wmsToken');
 
-    const res = await fetch(
-      'https://one.alensis.cz/api2/rest/inbounds/finishInboundOnScanningStation',
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ inboundId }),
-      },
-    );
+    const res = await fetch(url, {
+      headers: wmsToken ? { Authorization: `Bearer ${wmsToken}` } : {},
+    });
 
-    log.info('[finishInboundAlensa] Response status:', res.status);
-
-    let data: any = null;
-    try {
-      data = await res.json();
-    } catch (_) {}
-
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
       return {
         success: false,
-        error: data?.error || `HTTP error ${res.status}`,
+        data: null,
+        error: data?.error || `HTTP ${res.status}`,
       };
     }
 
-    if (!data?.status) {
-      return { success: false, error: data?.error || 'Finish inbound failed' };
-    }
-
-    log.info('[finishInboundAlensa] ✔ Success');
-    return { success: true, error: null };
+    return { success: true, data, error: null };
   } catch (err: any) {
-    log.error('[finishInboundAlensa] ❌ Unexpected error', err);
-    return { success: false, error: err.message || 'Network error' };
+    log.error('[wmsValidateUser] ❌', err);
+    return {
+      success: false,
+      data: null,
+      error: err.message || 'Network error',
+    };
   }
 };
 
-export const logoutAlensa = async (): Promise<{
+export const wmsGetPartSummary = async (
+  palletId: string,
+): Promise<{
   success: boolean;
+  data: any;
   error: string | null;
 }> => {
-  log.info('[logoutAlensa] Called');
-
+  log.info('[wmsGetPartSummary] palletId:', palletId);
   try {
-    const authToken = await storeService.get('authToken');
-    if (!authToken) {
-      return { success: true, error: null };
-    }
+    const cfg = await getSetupConfig();
+    if (!cfg.uri_part_summary)
+      throw new Error('uri_part_summary not configured.');
+    const url = buildUrl(
+      cfg.host,
+      cfg.uri_part_summary.replace('{palletId}', encodeURIComponent(palletId)),
+    );
+    const wmsToken = await storeService.get('wmsToken');
 
-    const res = await fetch('https://one.alensis.cz/api2/rest/auth/logout', {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${authToken}`,
-      },
+    const res = await fetch(url, {
+      headers: wmsToken ? { Authorization: `Bearer ${wmsToken}` } : {},
     });
 
-    log.info('[logoutAlensa] Response status:', res.status);
-
-    // Clear token regardless of response – the session is over
-    await storeService.set('authToken', '');
-
+    const data = await res.json().catch(() => null);
     if (!res.ok) {
-      log.warn('[logoutAlensa] Non-OK response, but token cleared');
-      return { success: true, error: null };
+      return {
+        success: false,
+        data: null,
+        error: data?.error || `HTTP ${res.status}`,
+      };
     }
 
-    log.info('[logoutAlensa] ✔ Success');
-    return { success: true, error: null };
+    return { success: true, data, error: null };
   } catch (err: any) {
-    log.error('[logoutAlensa] ❌ Unexpected error', err);
-    // Still clear the token on network error so the UI can proceed
-    await storeService.set('authToken', '').catch(() => {});
-    return { success: false, error: err.message || 'Network error' };
+    log.error('[wmsGetPartSummary] ❌', err);
+    return {
+      success: false,
+      data: null,
+      error: err.message || 'Network error',
+    };
+  }
+};
+
+export const wmsSendScanResults = async (
+  payload: object,
+): Promise<{
+  success: boolean;
+  data: any;
+  error: string | null;
+}> => {
+  log.info('[wmsSendScanResults] Called');
+  try {
+    const cfg = await getSetupConfig();
+    const url = buildUrl(cfg.host, cfg.uri_scans);
+    const wmsToken = await storeService.get('wmsToken');
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (wmsToken) headers['Authorization'] = `Bearer ${wmsToken}`;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return {
+        success: false,
+        data: null,
+        error: data?.error || `HTTP ${res.status}`,
+      };
+    }
+
+    return { success: true, data, error: null };
+  } catch (err: any) {
+    log.error('[wmsSendScanResults] ❌', err);
+    return {
+      success: false,
+      data: null,
+      error: err.message || 'Network error',
+    };
   }
 };

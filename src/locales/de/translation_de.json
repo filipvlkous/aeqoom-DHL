@@ -1,0 +1,117 @@
+{
+  "welcome": "Willkommen",
+  "dashboard": "Statistiken",
+  "history": "Verlauf",
+  "buttons": {
+    "back": "Zurück",
+    "add": "Hinzufügen"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Neue Kamera hinzufügen",
+      "name": "Kameraname",
+      "host": "Kamera-IP",
+      "port": "Kamera-Port",
+      "add": "Kamera hinzufügen"
+    },
+    "connectionList": {
+      "title": "Kameraliste",
+      "noConnections": "Keine Kamera verfügbar",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Verbinden",
+      "disconnect": "Trennen",
+      "remove": "Entfernen",
+      "removeAll": "Alle Kameras entfernen",
+      "noCamera1": "Keine Kamera verfügbar.",
+      "noCamera2": "Fügen Sie eine neue Kamera hinzu und klicken Sie dann auf Verbinden.",
+      "connecting": "Verbinden...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Passwort eingeben",
+        "passwordPlaceholder": "Passwort eingeben...",
+        "errorValidation": "Ungültiges Passwort",
+        "cancel": "Abbrechen",
+        "confirm": "Bestätigen"
+      }
+    },
+    "messageLog": {
+      "ok": "In Ordnung",
+      "notOk": "Fehler",
+      "received": "Empfangen",
+      "title": "Verlauf",
+      "time": "Zeit",
+      "type": "Typ",
+      "connect": "Ergebnis",
+      "job": "Auftrag",
+      "action": "Aktion",
+      "noMessages1": "Es wurden noch keine Nachrichten empfangen.",
+      "noMessages2": "Sobald Nachrichten empfangen werden, erscheinen sie hier.",
+      "item": "Element",
+      "items": "Elemente"
+    },
+    "statusHeader": {
+      "cameraConnected": "Kamerastatus",
+      "imageNumber": "Anzahl der Bilder"
+    },
+    "imagePanel": {
+      "noImage1": "Es wurde noch kein Bild empfangen",
+      "noImage2": "Verbinden Sie sich mit der Kamera und wählen Sie einen Auftrag, dann nehmen Sie ein Bild auf.",
+      "connectCamera": "Verbinden",
+      "send": "Daten senden",
+      "lastPhoto": "Auf dem letzten Foto",
+      "takePhoto": "Palette scannen",
+      "loading": "Laden...",
+      "successTitle": "Daten erfolgreich gesendet!",
+      "successSubtitle": "Die Daten wurden erfolgreich gesendet und aufgezeichnet."
+    },
+    "bottomPanel": {
+      "connected": "Verbinden",
+      "disconnected": "Trennen",
+      "settings": "Einstellungen"
+    },
+    "successModal": {
+      "title": "Daten gesendet",
+      "message": "Die Daten wurden erfolgreich gesendet.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Fehler beim Senden der Daten",
+      "close": "Schließen"
+    },
+    "processPage": {
+      "height": "Höhe",
+      "scanning": "Scannen..."
+    },
+    "errorMessages": {
+      "internalError": "Interner Fehler - Support anrufen",
+      "WMS-01": "Benutzer {userId} wurde im System nicht gefunden.",
+      "WMS-02": "Palette {palletId} wurde in BlueYonder nicht gefunden. Bitte überprüfen Sie, ob die richtigen Daten gesendet werden und die Palette im System existiert.",
+      "WMS-03": "EAN {ean} wurde im System nicht gefunden.",
+      "WMS-04": "Doppelte Seriennummer erkannt. Seriennummer {serialNumber} existiert bereits im System.",
+      "WMS-05": "Palette {palletId} hat bereits einen Scan-Eintrag im System.",
+      "WMS-06": "Bei der Verarbeitung der Anfrage ist ein Datenbankfehler aufgetreten.",
+      "ERR-01": "Keine LPN gefunden.",
+      "ERR-02": "Mehrere LPNs erkannt.",
+      "ERR-03": "Kein EAN gefunden.",
+      "ERR-04": "Fehlerhafter EAN erkannt.",
+      "ERR-05": "Gefunden {{foundSN}} von {{expectedSN}} SN.",
+      "ERR-06": "Höhe {{height}} cm liegt außerhalb der Toleranz."
+    }
+  },
+  "logout": {
+    "button": "Abmelden"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Zum Anmelden scannen Sie den QR-Code oder geben Sie Ihre User-ID in das Feld unten ein.",
+    "placeholder": "QR-Code scannen...",
+    "submit": "Anmelden",
+    "loading": "Anmelden...",
+    "errorInvalidQr": "Ungültiges QR-Code-Format.",
+    "errorDefault": "Anmeldung fehlgeschlagen"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "welcome": "Witamy",
+  "dashboard": "Statystyki",
+  "history": "Historia",
+  "buttons": {
+    "back": "Wstecz",
+    "add": "Dodaj"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Dodaj nową kamerę",
+      "name": "Nazwa kamery",
+      "host": "IP kamery",
+      "port": "Port kamery",
+      "add": "Dodaj kamerę"
+    },
+    "connectionList": {
+      "title": "Lista kamer",
+      "noConnections": "Brak dostępnej kamery",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Połącz",
+      "disconnect": "Rozłącz",
+      "remove": "Usuń",
+      "removeAll": "Usuń wszystkie kamery",
+      "noCamera1": "Żadna kamera nie jest dostępna.",
+      "noCamera2": "Dodaj nową kamerę, a następnie kliknij połącz.",
+      "connecting": "Łączenie...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Wprowadź hasło",
+        "passwordPlaceholder": "Wprowadź hasło...",
+        "errorValidation": "Nieprawidłowe hasło",
+        "cancel": "Anuluj",
+        "confirm": "Potwierdź"
+      }
+    },
+    "messageLog": {
+      "ok": "W porządku",
+      "notOk": "Błąd",
+      "received": "Odebrano",
+      "title": "Historia",
+      "time": "Czas",
+      "type": "Typ",
+      "connect": "Wynik",
+      "job": "Zadanie",
+      "action": "Akcja",
+      "noMessages1": "Nie otrzymano jeszcze żadnych wiadomości.",
+      "noMessages2": "Gdy wiadomości zostaną odebrane, pojawią się tutaj.",
+      "item": "Pozycja",
+      "items": "Pozycje"
+    },
+    "statusHeader": {
+      "cameraConnected": "Status kamery",
+      "imageNumber": "Liczba obrazów"
+    },
+    "imagePanel": {
+      "noImage1": "Nie otrzymano jeszcze żadnego obrazu",
+      "noImage2": "Połącz się z kamerą i wybierz zadanie, a następnie zrób zdjęcie.",
+      "connectCamera": "Połącz",
+      "send": "Wyślij dane",
+      "lastPhoto": "Na ostatnim zdjęciu",
+      "takePhoto": "Skanuj paletę",
+      "loading": "Ładowanie...",
+      "successTitle": "Dane wysłane pomyślnie!",
+      "successSubtitle": "Dane zostały pomyślnie wysłane i zapisane."
+    },
+    "bottomPanel": {
+      "connected": "Połącz",
+      "disconnected": "Rozłącz",
+      "settings": "Ustawienia"
+    },
+    "successModal": {
+      "title": "Dane wysłane",
+      "message": "Dane zostały pomyślnie wysłane.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Błąd podczas wysyłania danych",
+      "close": "Zamknij"
+    },
+    "processPage": {
+      "height": "Wysokość",
+      "scanning": "Skanowanie..."
+    },
+    "errorMessages": {
+      "internalError": "Błąd wewnętrzny - zadzwoń do wsparcia",
+      "WMS-01": "Użytkownik {userId} nie został znaleziony w systemie.",
+      "WMS-02": "Paleta {palletId} nie została znaleziona w BlueYonder. Sprawdź, czy wysyłane są poprawne dane i czy paleta istnieje w systemie.",
+      "WMS-03": "EAN {ean} nie został znaleziony w systemie.",
+      "WMS-04": "Wykryto zduplikowany numer seryjny. Numer seryjny {serialNumber} już istnieje w systemie.",
+      "WMS-05": "Paleta {palletId} ma już zapis skanowania w systemie.",
+      "WMS-06": "Podczas przetwarzania żądania wystąpił błąd bazy danych.",
+      "ERR-01": "Nie znaleziono LPN.",
+      "ERR-02": "Wykryto wiele LPN.",
+      "ERR-03": "Nie znaleziono EAN.",
+      "ERR-04": "Wykryto wadliwy EAN.",
+      "ERR-05": "Znaleziono {{foundSN}} z {{expectedSN}} SN.",
+      "ERR-06": "Wysokość {{height}} cm jest poza tolerancją."
+    }
+  },
+  "logout": {
+    "button": "Wyloguj się"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Aby się zalogować, zeskanuj kod QR lub wpisz swój User-ID w polu poniżej.",
+    "placeholder": "Zeskanuj kod QR...",
+    "submit": "Zaloguj się",
+    "loading": "Logowanie...",
+    "errorInvalidQr": "Nieprawidłowy format kodu QR.",
+    "errorDefault": "Logowanie nie powiodło się"
+  }
+}

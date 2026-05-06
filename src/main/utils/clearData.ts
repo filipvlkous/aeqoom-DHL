@@ -9,10 +9,6 @@ class CleanupUtil {
   constructor() {}
 
   async initData() {
-    const ftpConfig = await storeService.get('ftpConfig');
-    if (ftpConfig.rootPath) {
-      this.CLEANUP_FOLDER = ftpConfig.rootPath;
-    }
     const lastCleanup = await storeService.get('lastCleanup');
     if (lastCleanup) {
       this.LAST_CLEANUP_FILE = lastCleanup;

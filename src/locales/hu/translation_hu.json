@@ -1,0 +1,117 @@
+{
+  "welcome": "Üdvözöljük",
+  "dashboard": "Statisztikák",
+  "history": "Előzmények",
+  "buttons": {
+    "back": "Vissza",
+    "add": "Hozzáadás"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Új kamera hozzáadása",
+      "name": "Kamera neve",
+      "host": "Kamera IP-címe",
+      "port": "Kamera portja",
+      "add": "Kamera hozzáadása"
+    },
+    "connectionList": {
+      "title": "Kamerák listája",
+      "noConnections": "Nincs elérhető kamera",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Csatlakozás",
+      "disconnect": "Leválasztás",
+      "remove": "Eltávolítás",
+      "removeAll": "Az összes kamera eltávolítása",
+      "noCamera1": "Nincs elérhető kamera.",
+      "noCamera2": "Adjon hozzá új kamerát, majd kattintson a csatlakozásra.",
+      "connecting": "Csatlakozás...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Jelszó megadása",
+        "passwordPlaceholder": "Jelszó megadása...",
+        "errorValidation": "Érvénytelen jelszó",
+        "cancel": "Mégse",
+        "confirm": "Megerősítés"
+      }
+    },
+    "messageLog": {
+      "ok": "Rendben",
+      "notOk": "Hiba",
+      "received": "Fogadva",
+      "title": "Előzmények",
+      "time": "Idő",
+      "type": "Típus",
+      "connect": "Eredmény",
+      "job": "Feladat",
+      "action": "Művelet",
+      "noMessages1": "Még nem érkezett üzenet.",
+      "noMessages2": "Amint üzenetek érkeznek, itt fognak megjelenni.",
+      "item": "Tétel",
+      "items": "Tételek"
+    },
+    "statusHeader": {
+      "cameraConnected": "Kamera állapota",
+      "imageNumber": "Képek száma"
+    },
+    "imagePanel": {
+      "noImage1": "Még nem érkezett kép",
+      "noImage2": "Csatlakozzon a kamerához és válasszon feladatot, majd készítsen felvételt.",
+      "connectCamera": "Csatlakozás",
+      "send": "Adatok küldése",
+      "lastPhoto": "Az utolsó fényképen",
+      "takePhoto": "Raklap szkennelése",
+      "loading": "Betöltés...",
+      "successTitle": "Adatok sikeresen elküldve!",
+      "successSubtitle": "Az adatok sikeresen elküldésre és rögzítésre kerültek."
+    },
+    "bottomPanel": {
+      "connected": "Csatlakozás",
+      "disconnected": "Leválasztás",
+      "settings": "Beállítások"
+    },
+    "successModal": {
+      "title": "Adatok elküldve",
+      "message": "Az adatok sikeresen elküldésre kerültek.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Hiba az adatok küldésekor",
+      "close": "Bezárás"
+    },
+    "processPage": {
+      "height": "Magasság",
+      "scanning": "Szkennelés..."
+    },
+    "errorMessages": {
+      "internalError": "Belső hiba - hívja a támogatást",
+      "WMS-01": "A(z) {userId} felhasználó nem található a rendszerben.",
+      "WMS-02": "A(z) {palletId} raklap nem található a BlueYonder rendszerben. Kérjük, ellenőrizze, hogy a megfelelő adatok kerülnek-e elküldésre, és hogy a raklap létezik-e a rendszerben.",
+      "WMS-03": "A(z) {ean} EAN nem található a rendszerben.",
+      "WMS-04": "Ismétlődő sorozatszámot észleltünk. A(z) {serialNumber} sorozatszám már létezik a rendszerben.",
+      "WMS-05": "A(z) {palletId} raklap már rendelkezik szkennelési rekorddal a rendszerben.",
+      "WMS-06": "Adatbázishiba történt a kérés feldolgozása közben.",
+      "ERR-01": "Nem található LPN.",
+      "ERR-02": "Több LPN érzékelve.",
+      "ERR-03": "Nem található EAN.",
+      "ERR-04": "Hibás EAN érzékelve.",
+      "ERR-05": "Található {{foundSN}} a {{expectedSN}} SN-ből.",
+      "ERR-06": "A(z) {{height}} cm magasság kívül esik a tűréshatáron."
+    }
+  },
+  "logout": {
+    "button": "Kijelentkezés"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "A bejelentkezéshez olvassa be a QR-kódot, vagy adja meg a User-ID-jét az alábbi mezőben.",
+    "placeholder": "QR-kód beolvasása...",
+    "submit": "Bejelentkezés",
+    "loading": "Bejelentkezés...",
+    "errorInvalidQr": "Érvénytelen QR-kód formátum.",
+    "errorDefault": "A bejelentkezés nem sikerült"
+  }
+}

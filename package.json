@@ -1,7 +1,7 @@
 {
-  "name": "the-table",
-  "productName": "The Table",
-  "description": "app for scanning boxes at the table",
+  "name": "dhl-project",
+  "productName": "DHL Project",
+  "description": "app for scanning boxes",
   "keywords": [
     "electron",
     "boilerplate",
@@ -97,6 +97,7 @@
   "dependencies": {
     "@electron/notarize": "^3.0.0",
     "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.2",
     "electron-debug": "^4.1.0",
     "electron-log": "^5.3.2",
     "electron-store": "^11.0.2",
@@ -122,6 +123,7 @@
     "@testing-library/react": "^16.2.0",
     "@types/jest": "^29.5.14",
     "@types/node": "22.13.10",
+    "@types/pg": "^8.20.0",
     "@types/react": "^19.0.11",
     "@types/react-dom": "^19.0.4",
     "@types/react-test-renderer": "^19.0.0",
@@ -179,7 +181,7 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "The Table",
+    "productName": "DHL Project",
     "appId": "org.erb.TheTable",
     "asar": true,
     "afterSign": ".erb/scripts/notarize.js",

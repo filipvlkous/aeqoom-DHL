@@ -1,17 +1,28 @@
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { safeParseJSON } from '../main/utils/jsonParser';
+import {
+  ClassifiedCode,
+  classifyCodes,
+  ScanValidationResult,
+  validateHeight,
+  validateScan,
+  DbMask,
+  BarcodeType,
+  parseMaskPattern,
+} from '../main/utils/barcodeValidator';
 
 interface TcpConnection {
   id: string;
   remoteId?: string;
-  name: string;
   host: string;
   port: number;
   status: string;
+  workplace_id: string;
   lastConnected: string | null;
   messageCount: number;
   autoReconnect: boolean;
+  camera_id: string;
 }
 
 type Corners = {
@@ -30,43 +41,121 @@ export interface Message {
   connectionId: string;
   type: string;
   content: ContentBuild[];
-  createBox: boolean;
+  validation?: ScanValidationResult;
   receivedTime: string;
-  regime: number | null;
-  imageName: string | null;
   sendTime: string | null;
+  lpn?: string;
+  ean?: string;
+  serialNumbers?: string[];
 }
 
-interface NewConnectionForm {
-  name: string;
+export interface NewConnectionForm {
   host: string;
   port: string;
+  workplace_id: string;
+  camera_id: string;
 }
 
 declare global {
   interface Window {
+    dbAPI: {
+      getSetupCameras: () => Promise<
+        {
+          id: string;
+          workplace_id: string;
+          master_camera_ip: string | null;
+          camera_port: number | null;
+          camera_id: string;
+        }[]
+      >;
+      addSetupCamera: (camera: {
+        id: string;
+        workplace_id: string;
+        master_camera_ip: string | null;
+        camera_port: number | null;
+        camera_id: string;
+      }) => Promise<void>;
+      getSetup: () => Promise<{
+        id: string;
+        height_from: number;
+        height_to: number;
+        scan_duration_s: number | null;
+        [key: string]: any;
+      } | null>;
+      upsertSetup: (s: object) => Promise<void>;
+      removeCamera: (id: string) => Promise<void>;
+      getBarcodeMasks: () => Promise<
+        {
+          id: string;
+          barcode_type: string;
+          barcode_mask: string;
+          descr: string | null;
+        }[]
+      >;
+      getBarcodeMask: (id: string) => Promise<{
+        id: string;
+        barcode_type: string;
+        barcode_mask: string;
+        descr: string | null;
+      } | null>;
+      addBarcodeMask: (mask: {
+        id: string;
+        barcode_type: string;
+        barcode_mask: string;
+        descr: string | null;
+      }) => Promise<void>;
+      removeBarcodeMask: (id: string) => Promise<boolean>;
+      clearBarcodeMasks: () => Promise<void>;
+      addPartSummary: (
+        part: {
+          id: string;
+          created: Date;
+          user_id: string | null;
+          lpn: string;
+          ean: string;
+          sn_count: number;
+          status: string | null;
+        },
+        scans: {
+          id: string;
+          created: Date;
+          part_summary_id: string;
+          user_id: string | null;
+          barcode_type: string;
+          barcode_value: string;
+        }[],
+      ) => Promise<void>;
+    };
     hostStore: {
       getHosts: () => Promise<
         { id: string; name: string; host: string; port: string }[]
       >;
-      getRegime: () => Promise<number[]>;
       addHost: (hostEntry: {
         id: string;
         name: string;
         host: string;
         port: string;
+        workplace_id: string;
         auto: boolean;
       }) => Promise<void>;
       removeHost: (id: string) => Promise<boolean>;
       removeAllHosts: () => void;
-      addRegime: (value: number) => Promise<number[]>;
-      removeRegime: (value: number) => Promise<number[]>;
-    };
-    selectedHost: {
-      getSelectedHost: () => Promise<string>;
-      setSelectedHost: (host: string) => Promise<void>;
     };
   }
+}
+
+interface ScanSetup {
+  heightFrom: number;
+  heightTo: number;
+  // When > 0, ERR-05 is enforced. Set to null if WMS hasn't provided count yet.
+  expectedSnCount: number | null;
+  // Current measured height in cm; updated externally (e.g. from sensor data)
+  currentHeightCm: number | null;
+  // Seconds to buffer incoming messages before processing them as one scan
+  scanDurationS: number | null;
+
+  ean: string | null;
+  snCount: number | null;
 }
 
 // Zustand Store
@@ -74,36 +163,35 @@ interface TcpStore {
   // State
   messageBuffers: Map<string, string>; // Buffer for each connection
   connections: TcpConnection[];
-  ftpConnected: boolean;
   messages: Message[];
-  activeConnection: string | null;
   bridgeReady: boolean;
   currentView: 'connections' | 'messages' | 'activity';
-  regime: number | null;
-  totalPhotos: number;
-  svgImage: string | null;
-  image: string | null;
   cameraBtnDisabled: boolean;
-  inboundId: number | null;
-  setInboundId: (id: number | null) => void;
-  createBox: boolean;
-  setCreateBox: (value: boolean) => void;
+  isListening: boolean;
+  scanSetup: ScanSetup;
+  snMasks: DbMask[];
+  updateScanSetup: (updates: Partial<ScanSetup>) => void;
+  reloadMasks: () => Promise<void>;
+  reloadSetup: () => Promise<void>;
+
   // Actions
   updateConnection: (id: string, updates: Partial<TcpConnection>) => void;
   addConnection: (form: NewConnectionForm) => Promise<void>;
   removeConnection: (id: string) => void;
   removeAllConnections: () => void;
 
-  setImage: (
-    image: string | null,
-    tempStoreMainImg: boolean,
-    data?: any,
-  ) => void;
-
   setMessages: (messages: Message[]) => void;
   addMessage: (connId: string, type: Message['type'], content: string) => void;
+  _processCollectedCodes: (
+    connId: string,
+    type: string,
+    codes: {
+      content: string;
+      corners?: { x: number; y: number }[];
+      added: boolean;
+    }[],
+  ) => Promise<void>;
 
-  setActiveConnection: (id: string | null) => void;
   setBridgeReady: (ready: boolean) => void;
 
   connectToServer: (id: string) => Promise<void>;
@@ -115,50 +203,88 @@ interface TcpStore {
   sendDataMessage: () => Message | undefined;
   initializeConnections: () => Promise<void>;
   initializeDataListener: () => (() => void) | undefined;
-  initFtpListener: () => void;
 
-  setRegime: (regime: number) => void;
-
-  addRegime: (value: number) => Promise<void>;
-  removeRegime: (value: number) => Promise<void>;
   addContend: (value: string, increment: number) => void;
   updateContend: (value: boolean) => void;
 
   setCameraBtnDisabled: (value: boolean) => void;
+  setListening: (value: boolean) => void;
   resetState: () => void;
 }
+
+const DEFAULT_SCAN_SETUP: ScanSetup = {
+  heightFrom: 50,
+  heightTo: 250,
+  expectedSnCount: null,
+  currentHeightCm: null,
+  scanDurationS: null,
+  ean: null,
+  snCount: null,
+};
+
+// Scan buffer – lives outside Zustand to avoid triggering re-renders
+let scanBufferMap = new Map<string, { content: string; corners?: { x: number; y: number }[]; added: boolean; count: number }>();
+let scanBufferConnId: string | null = null;
+let scanBufferTimer: ReturnType<typeof setTimeout> | null = null;
 
 const useTcpStore = create<TcpStore>()(
   subscribeWithSelector((set, get) => ({
     // Initial State
     connections: [],
     messages: [],
-    ftpConnected: false,
-    activeConnection: null,
     bridgeReady: false,
     currentView: 'connections',
-    regime: null,
-    openAddModal: false,
-    totalPhotos: 0,
-    svgImage: null,
-    image: null,
     messageBuffers: new Map(),
     cameraBtnDisabled: false,
-    inboundId: null,
-    createBox: false,
+    isListening: false,
+    scanSetup: DEFAULT_SCAN_SETUP,
+    snMasks: [],
 
-    setInboundId: (id: number | null) => set({ inboundId: id }),
-    setCreateBox: (value: boolean) => set({ createBox: value }),
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+    updateScanSetup: (updates) =>
+      set((state) => ({ scanSetup: { ...state.scanSetup, ...updates } })),
+
+    reloadSetup: async () => {
+      const setup = await window.dbAPI.getSetup();
+      if (setup) {
+        set((state) => ({
+          scanSetup: {
+            ...state.scanSetup,
+            heightFrom: setup.height_from ?? DEFAULT_SCAN_SETUP.heightFrom,
+            heightTo: setup.height_to ?? DEFAULT_SCAN_SETUP.heightTo,
+            scanDurationS:
+              setup.scan_duration_s ?? DEFAULT_SCAN_SETUP.scanDurationS,
+            ean: setup.demo_ean ?? state.scanSetup.ean,
+            snCount: setup.demo_sn_count ?? state.scanSetup.snCount,
+          },
+        }));
+      }
+    },
+
+    reloadMasks: async () => {
+      const rows = await window.dbAPI.getBarcodeMasks();
+      const PRIORITY: Record<string, number> = { LPN: 0, EAN: 1 };
+      const snMasks: DbMask[] = rows
+        .map((m) => ({
+          barcodeType: (['LPN', 'EAN', 'SN', 'NODEF'].includes(m.barcode_type)
+            ? m.barcode_type
+            : 'SN') as BarcodeType,
+          name: m.barcode_type,
+          regex: parseMaskPattern(m.barcode_mask),
+        }))
+        .sort(
+          (a, b) =>
+            (PRIORITY[a.barcodeType] ?? 2) - (PRIORITY[b.barcodeType] ?? 2),
+        );
+      set({ snMasks });
+    },
 
     resetState: () => {
       set({
-        image: null,
-        svgImage: null,
         cameraBtnDisabled: false,
-        totalPhotos: 0,
         messages: [],
-        createBox: false,
-        inboundId: null,
       });
     },
     updateConnection: (id, updates) =>
@@ -172,87 +298,59 @@ const useTcpStore = create<TcpStore>()(
       set({ cameraBtnDisabled: value });
     },
 
-    setFtpConnected: async (value: boolean) => {
-      const val = await window.ftpAPI.onFtpConnected(value);
-      console.log('Ftp connected (manual set):', val);
-      set({ ftpConnected: value });
-    },
-
-    initFtpListener: () => {
-      window.ftpAPI.onFtpConnected((data: any) => {
-        set({ ftpConnected: data.success });
-      });
+    setListening: (value: boolean) => {
+      set({ isListening: value });
     },
 
     addConnection: async (form) => {
-      const { connections, activeConnection } = get();
-      const id = Date.now().toString() + Math.random().toString(36).slice(2, 9);
+      const { connections } = get();
+      const id = crypto.randomUUID();
 
-      if (!form.name || !form.host || !form.port) return;
+      if (!form.host || !form.port) return;
 
       const conn: TcpConnection = {
         id,
-        name: form.name,
         host: form.host,
         port: parseInt(form.port, 10),
         status: 'disconnected',
+        workplace_id: form.workplace_id,
+        camera_id: form.camera_id,
         lastConnected: null,
         messageCount: 0,
         autoReconnect: true,
       };
 
       try {
-        await window.hostStore?.addHost({
+        await window.dbAPI.addSetupCamera({
           id,
-          name: form.name,
-          host: form.host,
-          port: form.port,
-          auto: true,
+          workplace_id: form.workplace_id,
+          camera_id: form.camera_id,
+          master_camera_ip: form.host,
+          camera_port: parseInt(form.port, 10),
         });
 
         set({
           connections: [...connections, conn],
-          activeConnection: !activeConnection ? conn.id : activeConnection,
         });
       } catch (error) {
         console.error('Failed to add connection:', error);
       }
     },
 
-    setImage: async (image, tempStoreMainImg, data) => {
-      if (image) {
-        const [imageDataUri, svgData] = await Promise.all([
-          window.imageAPI.loadImage(image + '.jpg', tempStoreMainImg),
-          window.imageAPI.loadImage(image + '.svg', tempStoreMainImg, data),
-        ]);
-
-        set({ image: imageDataUri, svgImage: svgData });
-        set({ cameraBtnDisabled: false });
-      } else {
-        set({ image: null, svgImage: null, cameraBtnDisabled: false });
-      }
-    },
-
     removeConnection: (id) => {
-      const { connections, activeConnection, disconnectFromServer } = get();
+      const { connections, disconnectFromServer } = get();
 
       // Disconnect first
       disconnectFromServer(id);
 
       // Remove from storage
-      window.hostStore?.removeHost(id);
+      window.dbAPI?.removeCamera(id);
 
       // Update state
       const newConnections = connections.filter((c) => c.id !== id);
       set({
         connections: newConnections,
         messages: get().messages.filter((m) => m.connectionId !== id),
-        activeConnection:
-          activeConnection === id
-            ? newConnections.length > 0
-              ? newConnections[0].id
-              : null
-            : activeConnection,
       });
     },
 
@@ -263,7 +361,6 @@ const useTcpStore = create<TcpStore>()(
       set({
         connections: [],
         messages: [],
-        activeConnection: null,
       });
     },
 
@@ -336,54 +433,215 @@ const useTcpStore = create<TcpStore>()(
       });
     },
 
-    addMessage: async (connId, type, content: any) => {
+    addMessage: async (connId, type, content: string) => {
+      if (!get().isListening) {
+        console.log('[addMessage] Not listening, ignoring incoming data.');
+        return;
+      }
+
+      const heightRegex = /^\d{1,4}$/;
+
+      // Strip control chars (STX, ETX, CR, LF, etc.) and whitespace
+      const stripped = content.replace(/[\x00-\x1F\x7F\s]/g, '');
+
+      // Check if raw content is a plain height value (e.g. "2121")
+      if (heightRegex.test(stripped)) {
+        const heightCm = parseInt(stripped, 10);
+        get().updateScanSetup({ currentHeightCm: heightCm });
+        return;
+      }
+
       try {
         const json = await safeParseJSON(content);
-        let imageName: string | null = null;
-        if (json.image) {
-          const total = json.image.index;
-          const time = json.image.creationTime;
-
-          imageName = json.image.name + '-' + total + '-' + time;
-          setTimeout(() => {
-            get().setImage(imageName, true);
-          }, 1000);
+        if (!Array.isArray(json?.codes)) {
+          // Not a codes payload – ignore silently (no rogue trigger)
+          console.warn('[addMessage] Received non-codes payload, skipping.');
+          return;
         }
 
-        const jj = Array.isArray(json?.codes)
-          ? json.codes.map((group: ContentBuild) => ({
-              content: group.content,
-              corners: group.corners,
-              added: false,
-            }))
-          : [];
+        // Extract height sensor codes (digits only) from json.codes
+        const heightCodes = json.codes.filter((g: ContentBuild) =>
+          heightRegex.test(g.content),
+        );
+        const barcodeCodes = json.codes.filter(
+          (g: ContentBuild) => !heightRegex.test(g.content),
+        );
+        console.log('height code candidates', heightCodes);
+        if (heightCodes.length > 0) {
+          const heightCm = parseInt(heightCodes[0].content, 10);
+          console.log(
+            '[addMessage] Height sensor value received:',
+            heightCm,
+            'cm',
+          );
+          get().updateScanSetup({ currentHeightCm: heightCm });
+        }
 
-        const message: Message = {
-          id: Date.now().toString() + Math.random().toString(36).slice(2, 9),
-          connectionId: connId,
-          type,
-          content: jj,
-          receivedTime: new Date().toISOString(),
-          imageName: imageName,
-          regime: get().regime,
-          createBox: get().createBox,
-          sendTime: null,
-        };
+        const incomingCodes = barcodeCodes.map((g: ContentBuild) => ({
+          content: g.content,
+          corners: g.corners,
+          added: false,
+        }));
 
-        set((state) => {
-          let updated = [...state.messages, message];
+        const { scanSetup } = get();
+        const duration = scanSetup.scanDurationS;
 
-          state.totalPhotos = state.totalPhotos + 1;
-          // keep only last 10
-          if (updated.length > 10) {
-            updated = updated.slice(updated.length - 10);
+        // If scan duration is set, buffer codes and process after timer
+        if (duration && duration > 0) {
+          // Only add codes whose content is not already in the buffer
+          for (const code of incomingCodes) {
+            const existing = scanBufferMap.get(code.content);
+            if (existing) {
+              existing.count += 1;
+            } else {
+              scanBufferMap.set(code.content, { ...code, count: 1 });
+            }
+          }
+          scanBufferConnId = connId;
+
+          // If timer is already running, just accumulate
+          if (scanBufferTimer) {
+            console.log(
+              '[addMessage] Buffering codes, timer already running. Total unique buffered:',
+              scanBufferMap.size,
+            );
+            return;
           }
 
-          return { messages: updated };
-        });
+          // Start the collection timer
+          console.log(`[addMessage] Starting scan buffer for ${duration}s`);
+          scanBufferTimer = setTimeout(() => {
+            const codes = Array.from(scanBufferMap.values());
+            const bufferedConnId = scanBufferConnId!;
+            // Reset buffer
+            scanBufferMap = new Map();
+            scanBufferConnId = null;
+            scanBufferTimer = null;
+
+            console.log(
+              `[addMessage] Buffer complete. Processing ${codes.length} unique codes`,
+            );
+            console.log(
+              '[addMessage] All unique codes:',
+              codes.map((c) => c.content),
+            );
+            get()._processCollectedCodes(bufferedConnId, type, codes);
+          }, duration * 1000);
+          return;
+        }
+
+        // No duration set – process immediately
+        get()._processCollectedCodes(connId, type, incomingCodes);
       } catch (error) {
-        console.error('Failed to parse message content as JSON:', error);
-        get().sendMessage('||>trigger on\r\n');
+        // Parsing failed – genuine JSON error, not a business logic error
+        console.error('[addMessage] Failed to parse TCP payload:', error);
+        // Do NOT send trigger here – a broken frame shouldn't fire the wrapping machine
+      }
+    },
+
+    _processCollectedCodes: async (
+      connId: string,
+      type: string,
+      codes: {
+        content: string;
+        corners?: { x: number; y: number }[];
+        added: boolean;
+      }[],
+    ) => {
+      // 1. Classify every barcode using DB-loaded masks
+      const classified: ClassifiedCode[] = classifyCodes(codes, get().snMasks);
+
+      // 2. Run ERR-01…ERR-05
+      const { scanSetup } = get();
+      console.log('ean a snCount', scanSetup.snCount, scanSetup.ean);
+
+      const appMode = await window.authAPI.getAppMode();
+      let validation: ScanValidationResult = validateScan(
+        classified,
+        scanSetup.snCount,
+        appMode,
+        scanSetup.ean,
+      );
+
+      // 3. ERR-06 – height (only when height sensor value is available)
+      if (validation.ok && scanSetup.currentHeightCm !== null) {
+        validation = validateHeight(
+          scanSetup.currentHeightCm,
+          scanSetup.heightFrom,
+          scanSetup.heightTo,
+        );
+      }
+
+      // 4. Extract useful values for WMS (always pick first valid one)
+      const lpn = classified.find((c) => c.barcodeType === 'LPN')?.content;
+      const ean = classified.find((c) => c.barcodeType === 'EAN')?.content;
+      const serialNumbers = classified
+        .filter((c) => c.barcodeType === 'SN')
+        .map((c) => c.content);
+
+      // 5. Determine message type based on validation outcome
+      const messageType = validation.ok ? type : validation.error;
+
+      const message: Message = {
+        id: Date.now().toString() + Math.random().toString(36).slice(2, 9),
+        connectionId: connId,
+        type: messageType,
+        content: classified.map((c) => ({
+          content: c.content,
+          corners: c.corners,
+          added: c.added,
+          barcodeType: c.barcodeType,
+          maskName: c.maskName,
+        })),
+        receivedTime: new Date().toISOString(),
+        sendTime: null,
+        validation,
+        lpn,
+        ean,
+        serialNumbers,
+      };
+
+      set((state) => {
+        let updated = [...state.messages, message];
+        // Keep only last 10
+        if (updated.length > 10) updated = updated.slice(updated.length - 10);
+        return { messages: updated };
+      });
+
+      // 6. Log validation result for debugging
+      if (!validation.ok) {
+        console.warn(
+          `[Scan validation] ${validation.error}`,
+          validation.meta ?? '',
+        );
+      }
+
+      // 7. Persist to database
+      try {
+        const now = new Date();
+        const part = {
+          id: message.id,
+          created: now,
+          user_id: null as string | null,
+          lpn: lpn ?? '',
+          ean: ean ?? '',
+          sn_count: serialNumbers.length,
+          status: validation.ok ? 'OK' : (validation.error ?? 'NOK'),
+        };
+        const scanEntries = classified.map((c) => ({
+          id: crypto.randomUUID(),
+          created: now,
+          part_summary_id: message.id,
+          user_id: null as string | null,
+          barcode_type: c.barcodeType,
+          barcode_value: c.content,
+        }));
+        await window.dbAPI.addPartSummary(part, scanEntries);
+      } catch (err) {
+        console.error(
+          '[_processCollectedCodes] Failed to save scan to DB:',
+          err,
+        );
       }
     },
 
@@ -408,15 +666,10 @@ const useTcpStore = create<TcpStore>()(
       return updatedMessages[lastIndex];
     },
 
-    setActiveConnection: async (id) => {
-      if (!id) return;
-      await window.selectedHost.setSelectedHost(id);
-      set({ activeConnection: id });
-    },
     setBridgeReady: (ready) => set({ bridgeReady: ready }),
 
     connectToServer: async (id) => {
-      get().disconnectAll();
+      // get().disconnectAll();
       const { connections, updateConnection } = get();
       const conn = connections.find((c) => c.id === id);
 
@@ -473,63 +726,64 @@ const useTcpStore = create<TcpStore>()(
 
     sendMessage: (messageText) => {
       const { connections } = get();
+      if (!window.tcpIp) return;
 
-      const conn = connections.find((c) => c.status === 'connected');
-      if (
-        !conn ||
-        conn.status !== 'connected' ||
-        !conn.remoteId ||
-        !window.tcpIp
-      )
-        return;
-
-      window.tcpIp.send(conn.remoteId, messageText.trim());
+      connections
+        .filter((c) => c.status === 'connected' && c.remoteId)
+        .forEach((conn) => {
+          window.tcpIp!.send(conn.remoteId!, messageText.trim());
+        });
     },
-
-    setRegime: (regime: number) => set({ regime }),
-
+    //TODO: TADY DOPRACOVAT
     initializeConnections: async () => {
       try {
-        const hosts = (await window.hostStore?.getHosts()) || [];
+        const [hosts, dbMasks, setup] = await Promise.all([
+          window.dbAPI.getSetupCameras(),
+          window.dbAPI.getBarcodeMasks(),
+          window.dbAPI.getSetup(),
+        ]);
+
+        const PRIORITY: Record<string, number> = { LPN: 0, EAN: 1 };
+        const snMasks: DbMask[] = dbMasks
+          .map((m) => ({
+            barcodeType: (['LPN', 'EAN', 'SN', 'NODEF'].includes(m.barcode_type)
+              ? m.barcode_type
+              : 'SN') as BarcodeType,
+            name: m.barcode_type,
+            regex: parseMaskPattern(m.barcode_mask),
+          }))
+          .sort(
+            (a, b) =>
+              (PRIORITY[a.barcodeType] ?? 2) - (PRIORITY[b.barcodeType] ?? 2),
+          );
+
         const initialConnections = hosts.map((h) => ({
           id: h.id,
-          name: h.name,
-          host: h.host,
-          port: parseInt(h.port, 10),
+          name: '',
+          host: h.master_camera_ip ? h.master_camera_ip : '',
+          port: h.camera_port ? h.camera_port : 0,
+          workplace_id: h.workplace_id,
+          camera_id: h.camera_id,
           status: 'disconnected',
           lastConnected: null,
           messageCount: 0,
           autoReconnect: true,
         }));
-        set({ connections: initialConnections });
-        set({ activeConnection: await window.selectedHost.getSelectedHost() });
-        if (get().activeConnection) {
-          get().connectToServer(await window.selectedHost.getSelectedHost());
-        }
+        set({
+          connections: initialConnections,
+          snMasks,
+          scanSetup: {
+            ...get().scanSetup,
+            heightFrom: setup?.height_from ?? DEFAULT_SCAN_SETUP.heightFrom,
+            heightTo: setup?.height_to ?? DEFAULT_SCAN_SETUP.heightTo,
+            scanDurationS:
+              setup?.scan_duration_s ?? DEFAULT_SCAN_SETUP.scanDurationS,
+            ean: setup?.demo_ean ?? DEFAULT_SCAN_SETUP.ean,
+            snCount: setup?.demo_sn_count ?? DEFAULT_SCAN_SETUP.snCount,
+          },
+        });
       } catch (error) {
         console.error('Failed to initialize connections:', error);
-      }
-    },
-
-    addRegime: async (value) => {
-      try {
-        const updatedRegime = await window.hostStore?.addRegime(value);
-        if (updatedRegime) {
-          console.log('Regime after addition:', updatedRegime);
-        }
-      } catch (error) {
-        console.error('Failed to add regime value:', error);
-      }
-    },
-
-    removeRegime: async (value) => {
-      try {
-        const updatedRegime = await window.hostStore?.removeRegime(value);
-        if (updatedRegime) {
-          console.log('Regime after removal:', updatedRegime);
-        }
-      } catch (error) {
-        console.error('Failed to remove regime value:', error);
       }
     },
 

@@ -1,0 +1,117 @@
+{
+  "welcome": "Vítejte",
+  "dashboard": "Statistiky",
+  "history": "Historie",
+  "buttons": {
+    "back": "Zpět",
+    "add": "Přidat"
+  },
+  "settings": {
+    "addConnection": {
+      "title": "Přidat novou kameru",
+      "name": "Název kamery",
+      "host": "IP kamery",
+      "port": "Port kamery",
+      "add": "Přidat kameru"
+    },
+    "connectionList": {
+      "title": "Seznam kamer",
+      "noConnections": "Žádná dostupná kamera",
+      "online": "Online",
+      "offline": "Offline",
+      "connect": "Připojit",
+      "disconnect": "Odpojit",
+      "remove": "Odebrat",
+      "removeAll": "Odebrat všechny kamery",
+      "noCamera1": "Žádná kamera není k dispozici.",
+      "noCamera2": "Přidejte novou kameru a následně klikněte připojit se.",
+      "connecting": "Připojování...."
+    }
+  },
+  "home": {
+    "settings": {
+      "modal": {
+        "enterPassword": "Zadejte heslo",
+        "passwordPlaceholder": "Zadejte heslo...",
+        "errorValidation": "Neplatné heslo",
+        "cancel": "Zrušit",
+        "confirm": "Potvrdit"
+      }
+    },
+    "messageLog": {
+      "ok": "V pořádku",
+      "notOk": "Chyba",
+      "received": "Přijato",
+      "title": "Historie",
+      "time": "Čas",
+      "type": "Typ",
+      "connect": "Výsledek",
+      "job": "Úloha",
+      "action": "Akce",
+      "noMessages1": "Zatím nebyly přijaty žádné zprávy.",
+      "noMessages2": "Jakmile budou zprávy přijaty, zobrazí se zde.",
+      "item": "Položka",
+      "items": "Položky"
+    },
+    "statusHeader": {
+      "cameraConnected": "Status kamery",
+      "imageNumber": "Počet obrázků"
+    },
+    "imagePanel": {
+      "noImage1": "Žádný obrázek dosud nebyl přijat",
+      "noImage2": "Připojte se ke kameře a vyberte úlohu následně vytvořte snímek.",
+      "connectCamera": "Připojte se",
+      "send": "Odeslat data",
+      "lastPhoto": "Na poslední fotografii",
+      "takePhoto": "Skenovat paletu",
+      "loading": "Načítání...",
+      "successTitle": "Data úspěšně odeslána!",
+      "successSubtitle": "Data byla úspěšně odeslána a zaznamenána."
+    },
+    "bottomPanel": {
+      "connected": "Připojit se",
+      "disconnected": "Odpojit se",
+      "settings": "Nastavení"
+    },
+    "successModal": {
+      "title": "Data odeslána",
+      "message": "Data byla úspěšně odeslána.",
+      "ok": "OK"
+    },
+    "errorModal": {
+      "title": "Chyba při odesílání dat",
+      "close": "Zavřít"
+    },
+    "processPage": {
+      "height": "Výška",
+      "scanning": "Skenování..."
+    },
+    "errorMessages": {
+      "internalError": "Interní chyba - volejte support",
+      "WMS-01": "Uživatel {userId} nebyl nalezen v systému.",
+      "WMS-02": "Paleta {palletId} nebyla nalezena v BlueYonder. Ověřte prosím, že jsou odesílána správná data a že paleta v systému existuje.",
+      "WMS-03": "EAN {ean} nebyl nalezen v systému.",
+      "WMS-04": "Bylo zjištěno duplicitní sériové číslo. Sériové číslo {serialNumber} již v systému existuje.",
+      "WMS-05": "Paleta {palletId} již má v systému záznam o skenování.",
+      "WMS-06": "Při zpracování požadavku došlo k chybě databáze.",
+      "ERR-01": "Nenalezen žádný LPN.",
+      "ERR-02": "Rozpoznáno více LPN.",
+      "ERR-03": "Nenalezen žádný EAN.",
+      "ERR-04": "Rozpoznán vadný EAN.",
+      "ERR-05": "Nalezeno {{foundSN}} ze {{expectedSN}} SN.",
+      "ERR-06": "Výška {height} cm je mimo toleranci."
+    }
+  },
+  "logout": {
+    "button": "Odhlásit se"
+  },
+  "login": {
+    "title": "The Table",
+    "subtitle": "Pro přihlášení naskenujte QR kód nebo zadejte své User-ID do pole níže.",
+    "placeholder": "Naskenujte QR kód...",
+    "submit": "Přihlásit se",
+    "loading": "Přihlašování...",
+    "errorInvalidQr": "Neplatný formát QR kódu.",
+    "errorDefault": "Přihlášení se nezdařilo"
+  }
+}

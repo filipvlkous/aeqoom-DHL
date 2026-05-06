@@ -1,5 +1,4 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { FtpConfig } from './serverStore';
 import { Message } from '../renderer/useTcpStore';
 
 export type Channels = 'ipc-example';
@@ -24,19 +23,7 @@ const electronHandler = {
   },
 };
 
-contextBridge.exposeInMainWorld('imageAPI', {
-  loadImage: (imageName: string, tempStoreMainImg: boolean, data: any) =>
-    ipcRenderer.invoke('get-image-data', imageName, tempStoreMainImg, data),
-});
-
 contextBridge.exposeInMainWorld('electron', electronHandler);
-
-contextBridge.exposeInMainWorld('electronAPI', {
-  selectFile: () => ipcRenderer.invoke('select-file'),
-  selectSavePath: () => ipcRenderer.invoke('select-save-folder'),
-  saveFile: (path: string, content: string) =>
-    ipcRenderer.invoke('save-file', { path, content }),
-});
 
 contextBridge.exposeInMainWorld('APIs', {
   sendDataToApis: (message: Message) => {
@@ -74,40 +61,12 @@ contextBridge.exposeInMainWorld('tcpIp', {
   },
 });
 
-contextBridge.exposeInMainWorld('selectedHost', {
-  getSelectedHost: () => {
-    return ipcRenderer.invoke('get-selected-host');
+contextBridge.exposeInMainWorld('workplaceStore', {
+  setSelectedWorkplace: (workplaceId: string) => {
+    return ipcRenderer.invoke('set-workplace', workplaceId);
   },
-  setSelectedHost: (connectionId: string) => {
-    return ipcRenderer.invoke('set-selected-host', connectionId);
-  },
-});
-
-contextBridge.exposeInMainWorld('ftpAPI', {
-  selectFolder: () => ipcRenderer.invoke('ftp-selectFolder'),
-
-  startFtp: () => {
-    return ipcRenderer.invoke('ftp-start');
-  },
-  stopFtp: () => {
-    return ipcRenderer.invoke('ftp-stop');
-  },
-
-  getFtpConfig: () => {
-    return ipcRenderer.invoke('ftp-get-config');
-  },
-
-  setFtpConfig: (config: FtpConfig) => {
-    return ipcRenderer.invoke('ftp-update-config', config);
-  },
-  resetFtpConfig: () => {
-    return ipcRenderer.invoke('ftp-reset-config');
-  },
-
-  onFtpConnected: (callback: (data: any) => void) => {
-    ipcRenderer.on('ftp-connected', (_event, data) => {
-      callback(data);
-    });
+  getSelectedWorkplace: () => {
+    return ipcRenderer.invoke('get-workplace');
   },
 });
 
@@ -118,31 +77,14 @@ contextBridge.exposeInMainWorld('authAPI', {
   setToken: (token: string) => ipcRenderer.invoke('set-auth-token', token),
   clearToken: () => ipcRenderer.invoke('clear-auth-token'),
   logout: () => ipcRenderer.invoke('auth-logout'),
+  setAppMode: (mode: string) => ipcRenderer.invoke('set-app-mode', mode),
+  getAppMode: () => ipcRenderer.invoke('get-app-mode'),
 });
 
-contextBridge.exposeInMainWorld('inboundAPI', {
-  startInbound: (inboundId: number, token: string) =>
-    ipcRenderer.invoke('start-inbound', { inboundId, token }),
-  setInboundId: (id: number) => ipcRenderer.invoke('set-inbound-id', id),
-  getInboundId: () => ipcRenderer.invoke('get-inbound-id'),
-  finishInbound: (id: number) => ipcRenderer.invoke('finish-inbound', id),
-});
 
 contextBridge.exposeInMainWorld('hostStore', {
   getHosts: () => {
     return ipcRenderer.invoke('get-hosts');
-  },
-
-  getRegime: () => {
-    return ipcRenderer.invoke('get-regime');
-  },
-
-  removeRegime: (value: number) => {
-    return ipcRenderer.invoke('remove-regime', value);
-  },
-
-  addRegime: (value: number) => {
-    return ipcRenderer.invoke('add-regime', value);
   },
 
   addHost: (hostEntry: {
@@ -160,6 +102,53 @@ contextBridge.exposeInMainWorld('hostStore', {
   removeAllHosts: () => {
     ipcRenderer.send('remove-all-hosts');
   },
+});
+
+contextBridge.exposeInMainWorld('dbAPI', {
+  getSetupCameras: () => ipcRenderer.invoke('db-get-setup-cameras'),
+  addSetupCamera: (camera: {
+    id: string;
+    workplace_id: string;
+    master_camera_ip: string | null;
+    camera_port: number | null;
+  }) => ipcRenderer.invoke('db-add-setup-camera', camera),
+  getSetup: () => ipcRenderer.invoke('db-get-setup'),
+  upsertSetup: (s: object) => ipcRenderer.invoke('db-upsert-setup', s),
+  removeCamera: (id: string) =>
+    ipcRenderer.invoke('db-remove-setup-camera', id),
+
+  // Barcode Masks
+  getBarcodeMasks: () => ipcRenderer.invoke('db-get-barcode-masks'),
+  getBarcodeMask: (id: string) => ipcRenderer.invoke('db-get-barcode-mask', id),
+  addBarcodeMask: (mask: object) =>
+    ipcRenderer.invoke('db-add-barcode-mask', mask),
+  removeBarcodeMask: (id: string) =>
+    ipcRenderer.invoke('db-remove-barcode-mask', id),
+  clearBarcodeMasks: () => ipcRenderer.invoke('db-clear-barcode-masks'),
+
+  addPartSummary: (
+    part: {
+      id: string;
+      created: Date;
+      user_id: string | null;
+      lpn: string;
+      ean: string;
+      sn_count: number;
+      status: string | null;
+    },
+    scans: {
+      id: string;
+      created: Date;
+      part_summary_id: string;
+      user_id: string | null;
+      barcode_type: string;
+      barcode_value: string;
+    }[],
+  ) =>
+    ipcRenderer.invoke('db-add-part-summary', {
+      part,
+      scans,
+    }),
 });
 
 export type ElectronHandler = typeof electronHandler;

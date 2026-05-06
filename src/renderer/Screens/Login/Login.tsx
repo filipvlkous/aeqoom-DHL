@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import i18n from '../../../i18n';
 import useTcpStore from '../../useTcpStore';
+import '../Home/home.css';
 
 interface LoginProps {
   onLoginSuccess: (token: string) => void;
@@ -48,7 +50,13 @@ export default function Login({ onLoginSuccess }: LoginProps) {
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const setLang = (data: string) => {
+    i18n.changeLanguage(data);
+    localStorage.setItem('lang', JSON.stringify(data));
+  };
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -58,20 +66,27 @@ export default function Login({ onLoginSuccess }: LoginProps) {
     e.preventDefault();
     setError(null);
 
-    const parsed = parseQR(input);
-    if (!parsed) {
-      setError(t('login.errorInvalidQr'));
-      return;
-    }
+    // const parsed = parseQR(input);
+    // if (!parsed) {
+    //   setError(t('login.errorInvalidQr'));
+    //   return;
+    // }
 
     setLoading(true);
     try {
-      const { token } = await window.authAPI.login({
-        id: parsed.id,
-        hashedId: parsed.hashedId,
-      });
+      // const { token } = await window.authAPI.login({
+      //   id: parsed.id,
+      //   hashedId: parsed.hashedId,
+      // });
+      if (!input || input.trim() !== 'demo') {
+        setError(t('login.errorInvalidQr'));
+        setLoading(false);
+        return;
+      }
+ 
+        await window.authAPI.setAppMode('demo');
 
-      onLoginSuccess(token);
+        onLoginSuccess(input.trim().toLowerCase());
     } catch (err: any) {
       const raw: string = err.message || t('login.errorDefault');
       const cleaned = raw.replace(
@@ -107,6 +122,40 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         </form>
 
         {error && <p style={styles.error}>{error}</p>}
+      </div>
+      <div
+        className="lang-dropdown"
+        style={{ position: 'absolute', top: 10, right: 10 }}
+      >
+        <button
+          className="lang-dropdown-toggle"
+          onClick={() => setLangOpen((o) => !o)}
+          onBlur={() => setTimeout(() => setLangOpen(false), 150)}
+        >
+          {i18n.language === 'cs' ? '🇨🇿' : '🇬🇧'}
+        </button>
+        {langOpen && (
+          <div className="lang-dropdown-menu">
+            <button
+              className={`lang-dropdown-item${i18n.language === 'en' ? ' active' : ''}`}
+              onMouseDown={() => {
+                setLang('en');
+                setLangOpen(false);
+              }}
+            >
+              🇬🇧
+            </button>
+            <button
+              className={`lang-dropdown-item${i18n.language === 'cs' ? ' active' : ''}`}
+              onMouseDown={() => {
+                setLang('cs');
+                setLangOpen(false);
+              }}
+            >
+              🇨🇿
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
