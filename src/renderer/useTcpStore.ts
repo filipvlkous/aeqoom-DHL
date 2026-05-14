@@ -213,6 +213,7 @@ interface TcpStore {
   addContend: (value: string, increment: number) => void;
   updateContend: (value: boolean) => void;
   flushScanBuffer: () => void;
+  discardScanBuffer: () => void;
 
   setCameraBtnDisabled: (value: boolean) => void;
   setListening: (value: boolean) => void;
@@ -334,6 +335,17 @@ const useTcpStore = create<TcpStore>()(
         `[flushScanBuffer] Processing ${codes.length} buffered codes`,
       );
       get()._processCollectedCodes(bufferedConnId, 'received', codes);
+    },
+
+    discardScanBuffer: () => {
+      scanBufferMap = new Map();
+      scanBufferConnId = null;
+      if (scanBufferTimer) {
+        clearTimeout(scanBufferTimer);
+        scanBufferTimer = null;
+      }
+      messageQueue = [];
+      console.log('[discardScanBuffer] Scan buffer and message queue cleared.');
     },
 
     setCameraBtnDisabled: (value: boolean) => {

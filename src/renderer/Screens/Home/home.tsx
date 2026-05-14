@@ -34,6 +34,10 @@ function Home({
 
   // Action Handlers
   const handlePhotoCapture = () => {
+    // Clear any data received via TCP/IP during the previous run
+    store.discardScanBuffer();
+    store.resetState();
+
     setShowSuccess(false);
     store.setCameraBtnDisabled(true);
     store.setListening(true);
@@ -57,12 +61,6 @@ function Home({
     // Fire immediately for the first capture
     store.sendMessage('START\r\n');
     store.sendMessage('||>trigger on\r\n');
-
-    // setTimeout(() => {
-    //   store.sendMessage('||>trigger off\r\n');
-    //   store.setCameraBtnDisabled(false);
-    //   store.setListening(false);
-    // }, totalDuration);
   };
 
   const handleSendData = async () => {
