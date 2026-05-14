@@ -47,6 +47,8 @@ function Home({
       elapsed += interval;
       if (elapsed >= totalDuration) {
         clearInterval(timer);
+        store.setListening(false);
+        store.flushScanBuffer();
         store.setCameraBtnDisabled(false);
         store.setListening(false);
       }

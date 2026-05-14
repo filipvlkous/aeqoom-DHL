@@ -157,7 +157,8 @@ interface ScanSetup {
   ean: string | null;
   snCount: number | null;
 }
-
+         let moduleSizeMin = Infinity;
+         let moduleSizeMax = -Infinity;
 // Zustand Store
 interface TcpStore {
   // State
@@ -182,6 +183,11 @@ interface TcpStore {
 
   setMessages: (messages: Message[]) => void;
   addMessage: (connId: string, type: Message['type'], content: string) => void;
+  _processMessage: (
+    connId: string,
+    type: string,
+    content: string,
+  ) => Promise<void>;
   _processCollectedCodes: (
     connId: string,
     type: string,
@@ -206,6 +212,7 @@ interface TcpStore {
 
   addContend: (value: string, increment: number) => void;
   updateContend: (value: boolean) => void;
+  flushScanBuffer: () => void;
 
   setCameraBtnDisabled: (value: boolean) => void;
   setListening: (value: boolean) => void;
@@ -227,6 +234,26 @@ let scanBufferMap = new Map<string, { content: string; corners?: { x: number; y:
 let scanBufferConnId: string | null = null;
 let scanBufferTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Message queue – ensures addMessage calls are processed sequentially
+let messageQueue: { connId: string; type: string; content: string }[] = [];
+let messageQueueProcessing = false;
+
+async function processMessageQueue(get: any) {
+  if (messageQueueProcessing) return;
+  messageQueueProcessing = true;
+
+  while (messageQueue.length > 0) {
+    const item = messageQueue.shift()!;
+    try {
+      await get()._processMessage(item.connId, item.type, item.content);
+    } catch (err) {
+      console.error('[messageQueue] Error processing message:', err);
+    }
+  }
+
+  messageQueueProcessing = false;
+}
+
 const useTcpStore = create<TcpStore>()(
   subscribeWithSelector((set, get) => ({
     // Initial State
@@ -239,7 +266,6 @@ const useTcpStore = create<TcpStore>()(
     isListening: false,
     scanSetup: DEFAULT_SCAN_SETUP,
     snMasks: [],
-
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -293,6 +319,22 @@ const useTcpStore = create<TcpStore>()(
           conn.id === id ? { ...conn, ...updates } : conn,
         ),
       })),
+
+    flushScanBuffer: () => {
+      if (scanBufferMap.size === 0) return;
+      const codes = Array.from(scanBufferMap.values());
+      const bufferedConnId = scanBufferConnId ?? '';
+      scanBufferMap = new Map();
+      scanBufferConnId = null;
+      if (scanBufferTimer) {
+        clearTimeout(scanBufferTimer);
+        scanBufferTimer = null;
+      }
+      console.log(
+        `[flushScanBuffer] Processing ${codes.length} buffered codes`,
+      );
+      get()._processCollectedCodes(bufferedConnId, 'received', codes);
+    },
 
     setCameraBtnDisabled: (value: boolean) => {
       set({ cameraBtnDisabled: value });
@@ -376,33 +418,27 @@ const useTcpStore = create<TcpStore>()(
         const lastIndex = updatedMessages.length - 1;
         const lastMessage = updatedMessages[lastIndex];
 
-        // This check is now actually useful
         if (!lastMessage) {
           return {};
         }
 
         const currentContent = Array.isArray(lastMessage.content)
-          ? lastMessage.content
+          ? [...lastMessage.content]
           : [];
 
-        // Create a ContentBuild object from the string value
         const newContent: ContentBuild = {
           content: value,
           corners: undefined,
           added: true,
         };
 
-        let arr = [];
-
-        let i = 0;
-        while (i < inc) {
-          arr.push(newContent);
-          i++;
+        for (let i = 0; i < inc; i++) {
+          currentContent.push(newContent);
         }
 
         updatedMessages[lastIndex] = {
           ...lastMessage,
-          content: [...currentContent, ...arr],
+          content: currentContent,
         };
 
         return { messages: updatedMessages };
@@ -433,18 +469,26 @@ const useTcpStore = create<TcpStore>()(
       });
     },
 
-    addMessage: async (connId, type, content: string) => {
-      if (!get().isListening) {
-        console.log('[addMessage] Not listening, ignoring incoming data.');
-        return;
-      }
+    addMessage: (connId, type, content: string) => {
+      console.log(
+        `[addMessage] Incoming message for connection ${connId}:`,
+        content,
+      );
+      // if (!get().isListening) {
+      //   console.log('[addMessage] Not listening, ignoring incoming data.');
+      //   return;
+      // }
+      // console.log(`[addMessage] Received message from ${connId}:`, content);
 
+      // Enqueue and process serially – prevents data loss from concurrent async calls
+      messageQueue.push({ connId, type, content });
+      processMessageQueue(get);
+    },
+
+    _processMessage: async (connId: string, type: string, content: string) => {
       const heightRegex = /^\d{1,4}$/;
-
-      // Strip control chars (STX, ETX, CR, LF, etc.) and whitespace
       const stripped = content.replace(/[\x00-\x1F\x7F\s]/g, '');
 
-      // Check if raw content is a plain height value (e.g. "2121")
       if (heightRegex.test(stripped)) {
         const heightCm = parseInt(stripped, 10);
         get().updateScanSetup({ currentHeightCm: heightCm });
@@ -453,24 +497,25 @@ const useTcpStore = create<TcpStore>()(
 
       try {
         const json = await safeParseJSON(content);
+
         if (!Array.isArray(json?.codes)) {
-          // Not a codes payload – ignore silently (no rogue trigger)
-          console.warn('[addMessage] Received non-codes payload, skipping.');
+          console.warn(
+            '[_processMessage] Received non-codes payload, skipping.',
+          );
           return;
         }
 
-        // Extract height sensor codes (digits only) from json.codes
         const heightCodes = json.codes.filter((g: ContentBuild) =>
           heightRegex.test(g.content),
         );
         const barcodeCodes = json.codes.filter(
           (g: ContentBuild) => !heightRegex.test(g.content),
         );
-        console.log('height code candidates', heightCodes);
+
         if (heightCodes.length > 0) {
           const heightCm = parseInt(heightCodes[0].content, 10);
           console.log(
-            '[addMessage] Height sensor value received:',
+            '[_processMessage] Height sensor value received:',
             heightCm,
             'cm',
           );
@@ -486,9 +531,8 @@ const useTcpStore = create<TcpStore>()(
         const { scanSetup } = get();
         const duration = scanSetup.scanDurationS;
 
-        // If scan duration is set, buffer codes and process after timer
         if (duration && duration > 0) {
-          // Only add codes whose content is not already in the buffer
+          // Just accumulate – processing happens when flushScanBuffer is called
           for (const code of incomingCodes) {
             const existing = scanBufferMap.get(code.content);
             if (existing) {
@@ -499,43 +543,32 @@ const useTcpStore = create<TcpStore>()(
           }
           scanBufferConnId = connId;
 
-          // If timer is already running, just accumulate
-          if (scanBufferTimer) {
-            console.log(
-              '[addMessage] Buffering codes, timer already running. Total unique buffered:',
-              scanBufferMap.size,
-            );
-            return;
+          // update min/max from this incoming frame
+          for (const g of barcodeCodes) {
+            const ms = (g as any).moduleSize;
+            if (ms != null) {
+              if (ms < moduleSizeMin) moduleSizeMin = ms;
+              if (ms > moduleSizeMax) moduleSizeMax = ms;
+            }
           }
 
-          // Start the collection timer
-          console.log(`[addMessage] Starting scan buffer for ${duration}s`);
-          scanBufferTimer = setTimeout(() => {
-            const codes = Array.from(scanBufferMap.values());
-            const bufferedConnId = scanBufferConnId!;
-            // Reset buffer
-            scanBufferMap = new Map();
-            scanBufferConnId = null;
-            scanBufferTimer = null;
-
-            console.log(
-              `[addMessage] Buffer complete. Processing ${codes.length} unique codes`,
-            );
-            console.log(
-              '[addMessage] All unique codes:',
-              codes.map((c) => c.content),
-            );
-            get()._processCollectedCodes(bufferedConnId, type, codes);
-          }, duration * 1000);
           return;
         }
 
-        // No duration set – process immediately
-        get()._processCollectedCodes(connId, type, incomingCodes);
+        // no duration – log immediately
+
+        const sizes = barcodeCodes
+          .map((g: any) => g.moduleSize)
+          .filter((ms: any) => ms != null);
+        if (sizes.length) {
+          console.log(
+            `[scan complete] moduleSize  min: ${Math.min(...sizes)}  max: ${Math.max(...sizes)}`,
+          );
+        }
+
+        await get()._processCollectedCodes(connId, type, incomingCodes);
       } catch (error) {
-        // Parsing failed – genuine JSON error, not a business logic error
-        console.error('[addMessage] Failed to parse TCP payload:', error);
-        // Do NOT send trigger here – a broken frame shouldn't fire the wrapping machine
+        console.error('[_processMessage] Failed to parse TCP payload:', error);
       }
     },
 
@@ -643,6 +676,10 @@ const useTcpStore = create<TcpStore>()(
           err,
         );
       }
+
+      // Log all unique codes at the end of processing
+      const uniqueCodes = [...new Set(codes.map((c) => c.content))];
+      console.log('[_processCollectedCodes] All unique codes:', uniqueCodes);
     },
 
     sendDataMessage: (): Message | undefined => {
